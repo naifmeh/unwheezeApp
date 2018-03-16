@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="mainDescriptionTxtSize">12sp</dimen>
+    <dimen name="mainTitleSize">18sp</dimen>
+    <dimen name="mainToolbarTitleSize">30sp</dimen>
+
+    <dimen name="midCircleElevation">8dp</dimen>
+    <dimen name="logoElevation">9dp</dimen>
+    <dimen name="defaultAlphaFab">0.4</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+</resources>
