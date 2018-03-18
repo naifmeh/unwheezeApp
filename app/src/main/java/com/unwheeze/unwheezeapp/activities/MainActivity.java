@@ -363,11 +363,10 @@ public class MainActivity extends AppCompatActivity
 
             LatLng loc = new LatLng(latitude,longitude);
             mainMap.setMyLocationEnabled(true);
-            mainMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 13));
-
-        } else {
-            Geocoder gcd = new Geocoder(this, Locale.getDefault());
-
+            if(mSharedPrefs.getString(getString(R.string.shared_prefs_file_current_coarse_location),getString(R.string.countryName)).equals(getString(R.string.countryName)))
+                mainMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 5));
+            else
+                mainMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 12));
         }
 
 
@@ -464,7 +463,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onDestroy() {
-        mBtGatt.disconnect();
+        if(mBtGatt != null) mBtGatt.disconnect();
         super.onDestroy();
     }
 

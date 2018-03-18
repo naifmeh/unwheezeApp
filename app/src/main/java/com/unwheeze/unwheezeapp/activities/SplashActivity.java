@@ -114,7 +114,7 @@ public class SplashActivity extends AppCompatActivity {
                     }
 
                     if(addresses != null && addresses.size()>0) {
-                        Log.i(TAG,addresses.get(0).getLocality());
+                        Log.i(TAG,addresses.get(0).getCountryName()!=null?addresses.get(0).getCountryName():"");
                         SharedPreferences.Editor editor = mSharedPrefs.edit();
                         editor.putString(getString(R.string.shared_prefs_file_current_coarse_location), addresses.get(0).getLocality());
                         editor.putLong(getString(R.string.shared_prefs_file_current_coarse_latitude),Double.doubleToRawLongBits(addresses.get(0).getLatitude()));

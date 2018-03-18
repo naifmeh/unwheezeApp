@@ -1,5 +1,6 @@
 package com.unwheeze.unwheezeapp.fragments;
 
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
@@ -13,6 +14,8 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.unwheeze.unwheezeapp.R;
@@ -58,6 +61,13 @@ public class MeasureDialogFragment extends BottomSheetDialogFragment {
         if(behavior != null && behavior instanceof BottomSheetBehavior) {
             ((BottomSheetBehavior) behavior).setBottomSheetCallback(mBottomSheetBehaviorCallback);
         }
+
+        //TODO: Modify this and apply for every other progressBar
+        ProgressBar progressBar = (ProgressBar) contentView.findViewById(R.id.no2ProgressBar);
+        ObjectAnimator animation = ObjectAnimator.ofInt (progressBar, "progress", 0, 720); // see this max value coming back here, we animate towards that value
+        animation.setDuration (5000); //in milliseconds
+        animation.setInterpolator (new DecelerateInterpolator());
+        animation.start ();
     }
 
     public static MeasureDialogFragment newInstance() {
