@@ -1,8 +1,32 @@
 <resources>
     <string name="app_name">Unwheeze</string>
 
+    <string name="bluetoothDeviceName">MyESP32</string>
+    <string name="serviceBtUuid">6E400001-B5A3-F393-E0A9-E50E24DCCA9E</string>
+
+    <string name="shared_prefs_file_key">250e0554f52-e5fe0f5d</string>
+    <string name="shared_prefs_file_current_coarse_location">CURRENT_LOCATION</string>
+    <string name="shared_prefs_file_current_coarse_longitude">CURRENT_LONGITUDE</string>
+    <string name="shared_prefs_file_current_coarse_latitude">CURRENT_LATITUDE</string>
+
+    <string name="countryName">France</string>
+
+    <string name="connectedBteFabLabel">Connected to </string>
+    <string name="scanningBte">Scanning...</string>
+
+    <string name="pm10TitleLabel">PM10</string>
+    <string name="pm25TitleLabel">PM2.5</string>
+    <string name="no2TitleLabel">NO2</string>
+    <string name="measureUnit">mg/m²</string>
+
+    <string name="happyEmojiLabel">GOOD</string>
+    <string name="neutralEmojiLabel">AVERAGE</string>
+    <string name="sadEmojiLabel">BAD</string>
+
     <string name="toolbarSearch">Search</string>
     <string name="toolbarProfile">Profile</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_splash">SplashActivity</string>
+
+
 </resources>

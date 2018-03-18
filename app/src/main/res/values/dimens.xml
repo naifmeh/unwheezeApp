@@ -4,8 +4,14 @@
     <dimen name="mainTitleSize">18sp</dimen>
     <dimen name="mainToolbarTitleSize">30sp</dimen>
 
+    <dimen name="titleMeasureLabel">20sp</dimen>
+    <dimen name="valueMeasureLabel">18sp</dimen>
+    <dimen name="measureUnitSize">10sp</dimen>
+    <dimen name="progressBarSize">80dp</dimen>
+    <dimen name="resultEmojiSize">80dp</dimen>
+
     <dimen name="midCircleElevation">8dp</dimen>
     <dimen name="logoElevation">9dp</dimen>
-    <dimen name="defaultAlphaFab">0.4</dimen>
+    <dimen name="defaultAlphaFab">1</dimen>
     <dimen name="fab_margin">16dp</dimen>
 </resources>

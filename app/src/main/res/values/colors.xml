@@ -4,5 +4,19 @@
     <color name="colorPrimaryDark">#558B2F</color>
     <color name="colorAccent">#4DD0E1</color>
 
+    <color name="floralBlue">#B0C4DE</color>
+    <color name="bluetoothBlue">#3B5998</color>
+
+    <color name="lightBlue">#b6ffff</color>
+
     <color name="floralWhite" >#FBF7F2</color>
+
+    <color name="titleLabelColor">#FFFFFF</color>
+    <color name="valueLabelColor">#FFFFFF</color>
+
+    <color name="happyEmojiGreen">#35961B</color>
+    <color name="sadEmojiRed">#F54B09</color>
+    <color name="neutralEmojiOrange">#ff9933</color>
+
+
 </resources>
