@@ -5,6 +5,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
@@ -12,8 +14,12 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
@@ -26,13 +32,17 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetDialogFragment;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -55,14 +65,19 @@ import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 import com.unwheeze.unwheezeapp.R;
+import com.unwheeze.unwheezeapp.beans.AirData;
 import com.unwheeze.unwheezeapp.bluetooth.BluetoothActions;
 import com.unwheeze.unwheezeapp.bluetooth.MyBluetoothGattCallback;
 import com.unwheeze.unwheezeapp.database.AirDataContract;
 import com.unwheeze.unwheezeapp.database.AirDataDbHelper;
 import com.unwheeze.unwheezeapp.fragments.MeasureDialogFragment;
 import com.unwheeze.unwheezeapp.network.AirDataLoader;
+import com.unwheeze.unwheezeapp.network.WebSocketBroadcastReceiver;
+import com.unwheeze.unwheezeapp.services.WebsocketService;
+import com.unwheeze.unwheezeapp.utils.AirDataUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -77,11 +92,13 @@ public class MainActivity extends AppCompatActivity
     private FloatingActionButton mConnectFab;
     private FloatingActionButton mMeasureFabButton;
 
+    private BottomSheetDialogFragment bottomSheetDialogFragment;
+    private boolean isBottomSheetDisplayed = false;
+
     private SharedPreferences mSharedPrefs;
 
     private GoogleMap mainMap;
     private boolean isLocationApiPresent = true;
-    private FusedLocationProviderClient mFusedLocationClient;
 
     private boolean isBtPresent = true;
     private BluetoothAdapter mBluetoothAdapter;
@@ -93,9 +110,19 @@ public class MainActivity extends AppCompatActivity
     private boolean isDeviceConnected = false;
     private int mConnectionState = BluetoothProfile.STATE_DISCONNECTED;
     private ScanCallback mScanCallback;
-    private static final int SCAN_PERIOD = 5000;
+    private static final int SCAN_PERIOD = 2000;
+
+    private float mPm1 = 0.f;
+    private float mPm25 = 0.f;
+    private float mPm10 = 0.f;
+    private char mMeasureTrigger = 'B';
+    private int mOverallAirOpinion = AirDataUtils.AIR_QUALITY_NEUTRAL;
 
     private final Handler mHandler = new Handler();
+    private WebsocketService mWsService; //TODO: Handle service here
+    private BroadcastReceiver mBroadcastReceiver;
+    private LocalBroadcastManager mLocalBroadcastManager;
+    private boolean isBound;
 
     private final String FONT_PATH = "fonts/Kollektif-Bold.ttf";
 
@@ -150,7 +177,7 @@ public class MainActivity extends AppCompatActivity
 
         //---------- Bottom Sheet
 
-        BottomSheetDialogFragment bottomSheetDialogFragment = MeasureDialogFragment.newInstance();
+        bottomSheetDialogFragment = MeasureDialogFragment.newInstance();
 
 
 
@@ -167,6 +194,9 @@ public class MainActivity extends AppCompatActivity
                     if(mConnectionState == BluetoothProfile.STATE_DISCONNECTED) {
                         startScan();
                         Log.d(TAG, "Scanning...");
+                    } else {
+                        Log.d(TAG,"Disconnecting");
+                        mBtGatt.disconnect(); //TODO: Disconnect the device
                     }
                 }
             }
@@ -175,8 +205,22 @@ public class MainActivity extends AppCompatActivity
         });
         //TODO: Remove
         mMeasureFabButton.setOnClickListener((view)-> {
-            bottomSheetDialogFragment.show(getSupportFragmentManager(),bottomSheetDialogFragment.getTag());
+            writeCharacteristic('B');
+
         });
+
+        //--------- Service start
+        Intent serviceIntent = new Intent(this,WebsocketService.class);
+        startService(serviceIntent);
+
+        mLocalBroadcastManager = LocalBroadcastManager.getInstance(this);
+
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 
     @Override
@@ -193,6 +237,14 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
         if(!hasBtFeature()) isBtPresent = false;
         if(isBtPresent) initializeBt();
+
+        mBroadcastReceiver = new WebSocketBroadcastReceiver();
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(getString(R.string.websocketDataReceivedIntent));
+        mLocalBroadcastManager.registerReceiver(mBroadcastReceiver,filter);
+
+
     }
     //-------- Verification
 
@@ -313,7 +365,7 @@ public class MainActivity extends AppCompatActivity
 
     private void onScanResult() {
         mBtGattCallback = new MyBluetoothGattCallback(this);
-        mConnectionState = BluetoothProfile.STATE_DISCONNECTED;
+
         for(BluetoothDevice device : mBtDevices) {
             if(device.getName() == null) continue;
             if(device.getName().equals(getResources().getString(R.string.bluetoothDeviceName))) {
@@ -323,6 +375,64 @@ public class MainActivity extends AppCompatActivity
             }
 
         }
+        if(mBtGatt != null){
+            mBtGatt.discoverServices();
+        } else {
+            mConnectFab.setLabelText(getResources().getString(R.string.connectToDeviceFab));
+            mConnectFab.setClickable(true);
+            mConnectFab.setColorNormal(getResources().getColor(R.color.colorPrimaryDark));
+        }
+    }
+
+    private void writeCharacteristic(int value) {
+        if(mBluetoothAdapter == null || mBtGatt == null) {
+            Log.w(TAG,"BluetoothAdapter not init");
+            //TODO: Handle this case
+            return;
+        }
+        UUID uuid = UUID.fromString(getString(R.string.serviceBtUuid));
+        BluetoothGattService bluetoothGattService = mBtGatt.getService(uuid);
+        if(bluetoothGattService == null) {
+            Log.w(TAG,"Writing : ble service not found");
+            return;
+        }
+
+        UUID uuidWrite = UUID.fromString(getString(R.string.characWriteBtUuid));
+        BluetoothGattCharacteristic mWriteCharacs = bluetoothGattService.getCharacteristic(uuidWrite);
+        mWriteCharacs.setValue(value,BluetoothGattCharacteristic.FORMAT_UINT8,0);
+        if(mWriteCharacs != null && mBtGatt.writeCharacteristic(mWriteCharacs) == true) {
+            Log.i(TAG,"Sent data : "+value);
+            //TODO: Handle UI ?
+        } else Log.e(TAG,"Error while sending data");
+
+    }
+
+    private void subscribeCharacteristic(boolean enable) {
+        if(mBluetoothAdapter == null || mBtGatt == null) {
+            Log.w(TAG,"BluetoothAdapter not init");
+            //TODO: Handle this case
+            return;
+        }
+        UUID uuid = UUID.fromString(getString(R.string.serviceBtUuid));
+        BluetoothGattService bluetoothGattService = mBtGatt.getService(uuid);
+        if(bluetoothGattService == null) {
+            Log.w(TAG,"Subscribing : ble service not found");
+            return;
+        }
+
+        UUID uuidRead = UUID.fromString(getString(R.string.characReadBtUuid));
+        BluetoothGattCharacteristic mReadCharacs = bluetoothGattService.getCharacteristic(uuidRead);
+
+        mBtGatt.setCharacteristicNotification(mReadCharacs,enable);
+        BluetoothGattDescriptor descriptor = mReadCharacs.getDescriptor(UUID.fromString(getString(R.string.descriptorReadBtUid)));
+
+        if(descriptor != null) {
+            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            mBtGatt.writeDescriptor(descriptor);
+        } else {
+            Log.w(TAG,"Null descriptor");
+        }
+
 
     }
 
@@ -440,10 +550,27 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void receivedCharacteristics(String action, BluetoothGattCharacteristic characteristic) {
-        Log.d(TAG,"received");
         if(action == MyBluetoothGattCallback.ACTION_BTE_AVAILABLE) {
             Log.i(TAG,"Received some data");
+            final byte[] data = characteristic.getValue();
+            if(data!=null && data.length >0) {
 
+                String[] finalValue = (new String(data)).split("-");
+                Log.d(TAG,"receivedCharacteristics Value : "+new String(data));
+                if(finalValue.length >= 3) {
+                    mPm1 = Float.parseFloat(finalValue[0]);
+                    mPm25 = Float.parseFloat(finalValue[1]);
+                    mPm10 = Float.parseFloat(finalValue[2]);
+                }
+                AirData airData = new AirData(mPm25,mPm10,mPm1);
+                mOverallAirOpinion = AirDataUtils.computeAirQuality(airData);
+                if(isBottomSheetDisplayed != true)
+                    bottomSheetDialogFragment.show(getSupportFragmentManager(),bottomSheetDialogFragment.getTag());
+                else {
+                    //TODO: Handle case
+                }
+
+            }
         }
     }
 
@@ -454,21 +581,62 @@ public class MainActivity extends AppCompatActivity
            mConnectionState = BluetoothProfile.STATE_CONNECTED;
           runOnUiThread(() -> {
               mConnectFab.setLabelText(getResources().getString(R.string.connectedBteFabLabel)+" "+mBtGatt.getDevice().getName());
-              mConnectFab.setClickable(false);
               mConnectFab.setColorNormal(getResources().getColor(R.color.bluetoothBlue));
           });
+        } else if(action == MyBluetoothGattCallback.ACTION_BTE_DISCONNECTED){
+            if(mBtGatt != null) mBtGatt.close();
+            mConnectionState = BluetoothProfile.STATE_DISCONNECTED;
+            runOnUiThread(() -> {
+                mConnectFab.setLabelText(getResources().getString(R.string.connectToDeviceFab));
+                mConnectFab.setColorNormal(getResources().getColor(R.color.colorPrimaryDark));
+            });
+        } else if(action == MyBluetoothGattCallback.ACTION_BTE_CHARACS_DISCOVERED) {
+            Log.d(TAG,"Characteristics discovered");
+            subscribeCharacteristic(true);
         }
     }
     //------------------------------------
 
+
+    @Override
+    protected void onStop() {
+        mLocalBroadcastManager.unregisterReceiver(mBroadcastReceiver);
+        super.onStop();
+    }
+
     @Override
     protected void onDestroy() {
-        if(mBtGatt != null) mBtGatt.disconnect();
+        if(mBtGatt != null) mBtGatt.close();
+        Intent stopService = new Intent(this,WebsocketService.class);
+        stopService(stopService);
         super.onDestroy();
     }
 
     @Override
-    public void onFragmentInteraction(Uri uri) {
+    public float listenPm1() {
+        return mPm1;
+    }
+    @Override
+    public float listenPm25() {
+        return mPm25;
+    }
+    @Override
+    public float listenPm10() {
+        return mPm10;
+    }
 
+    @Override
+    public int getEmojiFace() {
+        return mOverallAirOpinion;
+    }
+
+    @Override
+    public void requestNewMeasure() {
+        writeCharacteristic(mMeasureTrigger);
+    }
+
+    @Override
+    public void isFragmentDisplayed(boolean value) {
+        isBottomSheetDisplayed = value;
     }
 }

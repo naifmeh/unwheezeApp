@@ -87,6 +87,7 @@ public class AirDataLoader extends AsyncTaskLoader<String> {
                         populateContentValue(values,gson.fromJson(jsonObj,AirData.class));
                         db.insert(AirDataContract.AirDataEntry.TABLE_NAME,null,values);
                 }
+                db.close();
             }
         }, new Response.ErrorListener() {
             @Override
@@ -112,10 +113,11 @@ public class AirDataLoader extends AsyncTaskLoader<String> {
         values.put(AirDataContract.AirDataEntry.COLUMN_NAME_ID,airData.getUserID());
         values.put(AirDataContract.AirDataEntry.COLUMN_NAME_PM10,airData.getPm10());
         values.put(AirDataContract.AirDataEntry.COLUMN_NAME_PM25,airData.getPm25());
-        values.put(AirDataContract.AirDataEntry.COLUMN_NAME_NO2,airData.getNo2());
+        values.put(AirDataContract.AirDataEntry.COLUMN_NAME_NO2,airData.getPm1());
         values.put(AirDataContract.AirDataEntry.COLUMN_NAME_USERID,airData.getUserID());
         values.put(AirDataContract.AirDataEntry.COLUMN_NAME_LOCATION,airData.getLocation());
         values.put(AirDataContract.AirDataEntry.COLUMN_NAME_DATETIME,airData.getDatetime());
     }
+
 
 }

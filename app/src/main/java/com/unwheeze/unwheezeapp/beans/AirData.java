@@ -1,13 +1,16 @@
 package com.unwheeze.unwheezeapp.beans;
 
 
+import android.os.Parcelable;
+
+import java.io.Serializable;
 
 public class AirData {
 
     private String location;
     private float pm25;
     private float pm10;
-    private float no2;
+    private float pm1;
     private String datetime;
     private String userID;
 
@@ -22,16 +25,20 @@ public class AirData {
         this.userID = userID;
     }
 
-    public AirData(String location, float pm25, float pm10, float no2, String datetime, String userID) {
+    public AirData(String location, float pm25, float pm10, float pm1, String datetime, String userID) {
         this.location = location;
         this.pm25 = pm25;
         this.pm10 = pm10;
-        this.no2 = no2;
+        this.pm1 = pm1;
         this.datetime = datetime;
         this.userID = userID;
     }
 
-
+    public AirData(float pm25, float pm10, float pm1) {
+        this.pm25 = pm25;
+        this.pm10 = pm10;
+        this.pm1 = pm1;
+    }
 
     public String getLocation() {
         return location;
@@ -57,12 +64,12 @@ public class AirData {
         this.pm10 = pm10;
     }
 
-    public float getNo2() {
-        return no2;
+    public float getPm1() {
+        return pm1;
     }
 
-    public void setNo2(float no2) {
-        this.no2 = no2;
+    public void setPm1(float pm1) {
+        this.pm1 = pm1;
     }
 
     public String getDatetime() {

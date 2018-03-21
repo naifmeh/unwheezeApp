@@ -141,7 +141,7 @@
         <com.github.clans.fab.FloatingActionButton
             style="@style/SubFabIcons"
             android:id="@+id/fab_menu_btConnect"
-            fab:fab_label="Connect to device"
+            fab:fab_label="@string/connectToDeviceFab"
             android:src="@drawable/ic_bluetooth_white_24px"/>
     </com.github.clans.fab.FloatingActionMenu>
 </android.support.design.widget.CoordinatorLayout>

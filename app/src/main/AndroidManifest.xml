@@ -45,6 +45,12 @@
             android:name=".activities.MainActivity"
             android:label="MainActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+
+        <service android:name=".services.WebsocketService"
+            android:exported="false"
+            android:description="@string/WsServiceDescription"/>
+
+
     </application>
 
 </manifest>

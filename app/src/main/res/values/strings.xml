@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">Unwheeze</string>
 
-    <string name="bluetoothDeviceName">MyESP32</string>
+    <string name="bluetoothDeviceName">ESP32 UART Test</string>
     <string name="serviceBtUuid">6E400001-B5A3-F393-E0A9-E50E24DCCA9E</string>
+    <string name="characWriteBtUuid">6E400002-B5A3-F393-E0A9-E50E24DCCA9E</string>
+    <string name="characReadBtUuid">6E400003-B5A3-F393-E0A9-E50E24DCCA9E</string>
+    <string name="descriptorReadBtUid">00002902-0000-1000-8000-00805f9b34fb</string>
 
     <string name="shared_prefs_file_key">250e0554f52-e5fe0f5d</string>
     <string name="shared_prefs_file_current_coarse_location">CURRENT_LOCATION</string>
@@ -11,6 +14,12 @@
 
     <string name="countryName">France</string>
 
+    <string name="WsServiceDescription">This service allows realtime flow of airdata to be
+        displayed on the map</string>
+
+    <string name="websocketDataReceivedIntent">com.unwheeze.ws.DATA_RECEIVED</string>
+
+    <string name="connectToDeviceFab">Connect to device</string>
     <string name="connectedBteFabLabel">Connected to </string>
     <string name="scanningBte">Scanning...</string>
 

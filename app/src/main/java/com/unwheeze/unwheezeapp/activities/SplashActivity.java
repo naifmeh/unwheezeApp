@@ -2,11 +2,13 @@ package com.unwheeze.unwheezeapp.activities;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -30,7 +32,7 @@ import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
 public class SplashActivity extends AppCompatActivity {
-
+    //TODO: Load in AsyncTask
     private static final String TAG = SplashActivity.class.getSimpleName();
 
     private boolean hasBTE = true;
@@ -43,6 +45,8 @@ public class SplashActivity extends AppCompatActivity {
 
     private SharedPreferences mSharedPrefs;
 
+    private Bundle mainBundle;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,9 +58,9 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Bundle bundle = new Bundle();
+        mainBundle = new Bundle();
 
-        if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+       /* if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             hasBTE = false;
         }
 
@@ -68,9 +72,8 @@ public class SplashActivity extends AppCompatActivity {
             googleApiAvailability.getErrorDialog(this,errorCode,REQUEST_CODE_GOOGLE_API);
         }
 
-
-        bundle.putBoolean(BTE_KEY,hasBTE);
-        bundle.putBoolean(GOOGLE_API_KEY,hasGoogleApi);
+        mainBundle.putBoolean(BTE_KEY,hasBTE);
+        mainBundle.putBoolean(GOOGLE_API_KEY,hasGoogleApi);
 
         mSharedPrefs = this.getSharedPreferences(getString(R.string.shared_prefs_file_key),this.MODE_PRIVATE);
 
@@ -78,8 +81,13 @@ public class SplashActivity extends AppCompatActivity {
             Log.d(TAG,"Getting last known location...");
             saveLastKnownLocation();
         }
-        Intent intentMain = new Intent(this,MainActivity.class);
-        startActivity(intentMain);
+        displayMainActivity();
+        */
+
+       SplashAsyncTask splashAsyncTask = new SplashAsyncTask();
+       splashAsyncTask.execute(this);
+
+
     }
 
     @SuppressWarnings({"ResourceType"})
@@ -130,5 +138,58 @@ public class SplashActivity extends AppCompatActivity {
 
     private boolean hasLocationPermissions() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+    private void displayErrorDialog(GoogleApiAvailability googleApiAvailability,int errorCode) {
+        googleApiAvailability.getErrorDialog(this,errorCode,REQUEST_CODE_GOOGLE_API);
+    }
+    private void displayMainActivity() {
+        Intent intentMain = new Intent(this,MainActivity.class);
+        startActivity(intentMain);
+    }
+
+    public class SplashAsyncTask extends AsyncTask<Context,Void,Integer> {
+
+
+        @Override
+        protected Integer doInBackground(Context... context) {
+            Bundle bundle = new Bundle();
+
+            if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+                hasBTE = false;
+            }
+
+            GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
+            int errorCode;
+            if((errorCode = googleApiAvailability.isGooglePlayServicesAvailable(context[0])) == ConnectionResult.SUCCESS) {
+                hasGoogleApi = true;
+            } else {
+                displayErrorDialog(googleApiAvailability,errorCode);
+            }
+
+
+            bundle.putBoolean(BTE_KEY,hasBTE);
+            bundle.putBoolean(GOOGLE_API_KEY,hasGoogleApi);
+
+            mSharedPrefs = context[0].getSharedPreferences(getString(R.string.shared_prefs_file_key),context[0].MODE_PRIVATE);
+
+            if(hasGoogleApi) {
+                Log.d(TAG,"Getting last known location...");
+                saveLastKnownLocation();
+            }
+            Log.d(TAG,"Done asynctask");
+            //TODO: Remove thread.sleep
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return 0;
+        }
+
+        @Override
+        protected void onPostExecute(Integer aVoid) {
+            Log.d(TAG,"In post execute");
+            displayMainActivity();
+        }
     }
 }
