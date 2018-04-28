@@ -2,6 +2,7 @@ package com.unwheeze.unwheezeapp.network;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.v4.content.AsyncTaskLoader;
@@ -16,9 +17,11 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.unwheeze.unwheezeapp.R;
 import com.unwheeze.unwheezeapp.beans.AirData;
 import com.unwheeze.unwheezeapp.database.AirDataContract;
 import com.unwheeze.unwheezeapp.database.AirDataDbHelper;
+import com.unwheeze.unwheezeapp.utils.AirDataUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,20 +37,23 @@ import java.util.Map;
 /**
  * Created by User on 14/03/2018.
  */
-
+//TODO: HUGE PROBLEM CANT GET THE LOADER TO LOAD THE DATA WHYYYY
 public class AirDataLoader extends AsyncTaskLoader<String> {
 
     private static final String TAG = AirDataLoader.class.getSimpleName();
 
     private AirDataDbHelper mDbHelper = new AirDataDbHelper(getContext());
     private SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    private SharedPreferences mSharedPrefs;
 
     private RequestQueue queue;
+    private Context mCtx;
 
     private Uri mUri;
 
     public AirDataLoader(Context context) {
         super(context);
+        mCtx = context;
         queue = AirDataRequestSingleton.getInstance(context.getApplicationContext())
             .getRequestQueue();
 
@@ -59,6 +65,11 @@ public class AirDataLoader extends AsyncTaskLoader<String> {
                 .appendPath(RequestsScheme.AIRDATA_GETALL);
 
         mUri = builder.build();
+
+        mSharedPrefs = context.getSharedPreferences(context.getString(R.string.shared_prefs_file_key),context.MODE_PRIVATE);
+
+
+
 
 
     }
@@ -74,32 +85,29 @@ public class AirDataLoader extends AsyncTaskLoader<String> {
 
         final Gson gson = new Gson();
 
-        final ContentValues values = new ContentValues();
 
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, mUri.toString(), null, new Response.Listener<JSONArray>() {
-            @Override
-            public void onResponse(JSONArray response) {
+
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, mUri.toString(), null, (response) -> {
+
                 JsonArray arrayReps = new JsonArray();
                 arrayReps.addAll(gson.fromJson(response.toString(),JsonArray.class));
-
+                Log.d(TAG,arrayReps.toString());
                 for(int i=0;i<arrayReps.size();i++) {
                         String jsonObj = arrayReps.get(i).toString();
-                        populateContentValue(values,gson.fromJson(jsonObj,AirData.class));
+                        ContentValues values = AirDataUtils.populateContentValue(gson.fromJson(jsonObj,AirData.class));
                         db.insert(AirDataContract.AirDataEntry.TABLE_NAME,null,values);
                 }
                 db.close();
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d(TAG, "onErrorResponse: "+error.getMessage());
-            }
-        }) {
+        }, (error) -> Log.d(TAG,"onErrorResponse "+error.getMessage())) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String,String> params = new HashMap<String,String>();
-                //TODO(2) : Get API key from sharedPrefs
-                params.put("X-Api-Key","b8f1e1cc-58af-43f8-acc0-f1adde406a4b");
+                String api_key="none";
+                String sharedApiKey = mCtx.getString(R.string.shared_prefs_file_api_key);
+                if(mSharedPrefs != null && mSharedPrefs.contains(sharedApiKey)) {
+                    api_key = mSharedPrefs.getString(sharedApiKey,"none");
+                }
+                params.put("X-Api-Key",api_key);
 
                 return params;
             }
@@ -109,15 +117,7 @@ public class AirDataLoader extends AsyncTaskLoader<String> {
         return null;
     }
 
-    private void populateContentValue(ContentValues values,AirData airData) {
-        values.put(AirDataContract.AirDataEntry.COLUMN_NAME_ID,airData.getUserID());
-        values.put(AirDataContract.AirDataEntry.COLUMN_NAME_PM10,airData.getPm10());
-        values.put(AirDataContract.AirDataEntry.COLUMN_NAME_PM25,airData.getPm25());
-        values.put(AirDataContract.AirDataEntry.COLUMN_NAME_NO2,airData.getPm1());
-        values.put(AirDataContract.AirDataEntry.COLUMN_NAME_USERID,airData.getUserID());
-        values.put(AirDataContract.AirDataEntry.COLUMN_NAME_LOCATION,airData.getLocation());
-        values.put(AirDataContract.AirDataEntry.COLUMN_NAME_DATETIME,airData.getDatetime());
-    }
+
 
 
 }

@@ -9,7 +9,7 @@ public class RequestsScheme {
     public static String HTTP_SCHEME = "http";
     public static String WS_SCHEME = "ws";
 
-    public static String AUTHORITY = "172.26.166.200:8080"; //TODO Replace with IP or URL
+    public static String AUTHORITY = "18.219.202.43:8080/Unwheeze";//"192.168.1.96:8080";//
     public static String APP_PATH = "unwheeze";
 
     public static String WS_REALTIME = "realtime";
@@ -17,5 +17,9 @@ public class RequestsScheme {
 
     public static String AIRDATA_PATH = "airData";
     public static String AIRDATA_GETALL = "getAirCollection";
+    public static String AIRDATA_PUTAIRDATA = "putAirData";
+
+    public static String AUTH_PATH = "auth";
+    public static String AUTH_API_TOKEN = "clientToken";
 
 }

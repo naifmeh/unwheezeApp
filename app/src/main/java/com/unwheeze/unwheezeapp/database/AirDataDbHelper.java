@@ -20,7 +20,7 @@ public class AirDataDbHelper extends SQLiteOpenHelper {
             AirDataContract.AirDataEntry.COLUMN_NAME_LOCATION + " TEXT, " +
             AirDataContract.AirDataEntry.COLUMN_NAME_PM10 + " FLOAT, " +
             AirDataContract.AirDataEntry.COLUMN_NAME_PM25 + " FLOAT, " +
-            AirDataContract.AirDataEntry.COLUMN_NAME_NO2 + " FLOAT)";
+            AirDataContract.AirDataEntry.COLUMN_NAME_PM1 + " FLOAT)";
 
     private static final String SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS "+ AirDataContract.AirDataEntry.TABLE_NAME;
 

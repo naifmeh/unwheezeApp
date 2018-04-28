@@ -14,4 +14,10 @@
     <dimen name="logoElevation">9dp</dimen>
     <dimen name="defaultAlphaFab">1</dimen>
     <dimen name="fab_margin">16dp</dimen>
+
+    <dimen name="errorPopUpWidth">300dp</dimen>
+    <dimen name="errorPopUpHeight">150dp</dimen>
+    <dimen name="errorTitleSize">18sp</dimen>
+    <dimen name="errorOkBtnHeight">25dp</dimen>
+    <dimen name="errorOkBtnWidth">70dp</dimen>
 </resources>

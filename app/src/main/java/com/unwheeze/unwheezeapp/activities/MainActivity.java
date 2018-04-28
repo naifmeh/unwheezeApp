@@ -1,6 +1,7 @@
 package com.unwheeze.unwheezeapp.activities;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -17,6 +18,7 @@ import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -28,12 +30,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.location.Geocoder;
+import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.ParcelUuid;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetDialogFragment;
 import android.support.design.widget.CoordinatorLayout;
@@ -43,6 +47,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -56,23 +61,27 @@ import android.widget.Toast;
 import com.github.clans.fab.FloatingActionButton;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.gson.Gson;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 import com.unwheeze.unwheezeapp.R;
 import com.unwheeze.unwheezeapp.beans.AirData;
 import com.unwheeze.unwheezeapp.bluetooth.BluetoothActions;
 import com.unwheeze.unwheezeapp.bluetooth.MyBluetoothGattCallback;
+import com.unwheeze.unwheezeapp.bluetooth.RequestDeviceAirDataTask;
 import com.unwheeze.unwheezeapp.database.AirDataContract;
 import com.unwheeze.unwheezeapp.database.AirDataDbHelper;
 import com.unwheeze.unwheezeapp.fragments.MeasureDialogFragment;
 import com.unwheeze.unwheezeapp.network.AirDataLoader;
-import com.unwheeze.unwheezeapp.network.WebSocketBroadcastReceiver;
 import com.unwheeze.unwheezeapp.services.WebsocketService;
 import com.unwheeze.unwheezeapp.utils.AirDataUtils;
 
@@ -81,6 +90,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+//TODO: Avant d'enregistrer toute donnee dans la db, verifier qu'elle n'y est pas deja
 
 public class MainActivity extends AppCompatActivity
         implements OnMapReadyCallback, LoaderManager.LoaderCallbacks<String>, BluetoothActions,
@@ -99,6 +109,10 @@ public class MainActivity extends AppCompatActivity
 
     private GoogleMap mainMap;
     private boolean isLocationApiPresent = true;
+    private FusedLocationProviderClient mFusedLocationClient;
+    private List<WeightedLatLng> mHeatMapList = new ArrayList<>();
+    private HeatmapTileProvider mProvider;
+    private TileOverlay mOverlay;
 
     private boolean isBtPresent = true;
     private BluetoothAdapter mBluetoothAdapter;
@@ -124,10 +138,14 @@ public class MainActivity extends AppCompatActivity
     private LocalBroadcastManager mLocalBroadcastManager;
     private boolean isBound;
 
+    private AirDataDbHelper mDbHelper = new AirDataDbHelper(this);
+    private SQLiteDatabase mDb;
+
     private final String FONT_PATH = "fonts/Kollektif-Bold.ttf";
 
     public static final int LOADER_AIRDATA_TAG =  654548;
     private static final int REQUEST_ENABLE_BT = 62328;
+    private static final int REQUEST_ENABLE_LOCATION = 58976;
 
 
     @Override
@@ -135,7 +153,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //------ Verifiying bundle
-
+         mDb = mDbHelper.getWritableDatabase();
         if(savedInstanceState != null) {
             isLocationApiPresent = savedInstanceState.getBoolean(SplashActivity.GOOGLE_API_KEY);
         }
@@ -184,7 +202,8 @@ public class MainActivity extends AppCompatActivity
         //----- Starting Loader
 
         getSupportLoaderManager().initLoader(LOADER_AIRDATA_TAG,null,this).forceLoad();
-
+        //Starting location manager
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         //------ Bluetooth Handling
 
         mConnectFab.setOnClickListener((view)-> {
@@ -229,6 +248,8 @@ public class MainActivity extends AppCompatActivity
         if(requestCode == REQUEST_ENABLE_BT) {
             Log.d(TAG,"Result code by BTE : "+resultCode);
 
+        } else if(requestCode == REQUEST_ENABLE_LOCATION) {
+            Log.d(TAG,"Result code by Location");
         }
     }
 
@@ -263,11 +284,13 @@ public class MainActivity extends AppCompatActivity
             requestLocationPermission();
             return false;
         } else if(!areLocationServicesEnabled(this)) {
-            //requestLocationEnable();
+            requestLocationEnable();
             return false;
         }
         return true;
     }
+
+
     public boolean areLocationServicesEnabled(Context context) {
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         try {
@@ -278,11 +301,15 @@ public class MainActivity extends AppCompatActivity
             return false;
         }
     }
+
+
     private void requestBluetoothEnable() {
         Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         Log.d(TAG, "Requested user enables Bluetooth. Try starting the scan again.");
     }
+
+
     private boolean hasLocationPermissions() {
         return ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
@@ -291,10 +318,21 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void  requestLocationEnable() {
-        Log.e(TAG,"Location not enabled");
-        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        //TODO request location enabling
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, final int id) {
+                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
     }
 
 
@@ -456,15 +494,17 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings({"ResourceType"})
     public void onMapReady(GoogleMap googleMap) {
         mainMap = googleMap;
-        List<WeightedLatLng> list = readItems();
+        mHeatMapList = readItems();
 
-        if(!list.isEmpty()) {
-            HeatmapTileProvider mProvider = new HeatmapTileProvider.Builder()
-                    .weightedData(list)
+        if(!mHeatMapList.isEmpty()) {
+            mProvider = new HeatmapTileProvider.Builder()
+                    .weightedData(mHeatMapList)
                     .build();
-             mainMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
+
+             mOverlay = mainMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
         } else {
-            Toast.makeText(this,"Couldn't load data",Toast.LENGTH_LONG).show();
+            Toast.makeText(this,"Couldn't load data ",Toast.LENGTH_LONG)
+                    .show();
         }
 
         if(mSharedPrefs != null && mSharedPrefs.contains(getString(R.string.shared_prefs_file_current_coarse_latitude))) {
@@ -483,7 +523,7 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-   private ArrayList<WeightedLatLng> readItems() {
+   private ArrayList<WeightedLatLng> readItems() { //PROBLEME ICI
         //TODO filter by city
        AirDataDbHelper mDbHelper = new AirDataDbHelper(this);
        SQLiteDatabase db = mDbHelper.getWritableDatabase();
@@ -494,7 +534,7 @@ public class MainActivity extends AppCompatActivity
                AirDataContract.AirDataEntry.COLUMN_NAME_LOCATION,
                AirDataContract.AirDataEntry.COLUMN_NAME_PM25,
                AirDataContract.AirDataEntry.COLUMN_NAME_PM10,
-               AirDataContract.AirDataEntry.COLUMN_NAME_NO2
+               AirDataContract.AirDataEntry.COLUMN_NAME_PM1
        };
 
        //TODO : Maybe on a different thread ?
@@ -511,6 +551,7 @@ public class MainActivity extends AppCompatActivity
            String location = cursor.getString(cursor.getColumnIndexOrThrow(
                    AirDataContract.AirDataEntry.COLUMN_NAME_LOCATION
            ));
+           Log.d(TAG,location);
            if(location == null) continue;
            String[] position = location.split(",");
 
@@ -533,7 +574,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
-
+        //mHeatMapList = readItems();
     }
 
     @Override
@@ -562,8 +603,14 @@ public class MainActivity extends AppCompatActivity
                     mPm25 = Float.parseFloat(finalValue[1]);
                     mPm10 = Float.parseFloat(finalValue[2]);
                 }
-                AirData airData = new AirData(mPm25,mPm10,mPm1);
+                if(mPm1 == 0 && mPm10 == 0 && mPm25 == 0) return;
+
+                UUID uuid = UUID.randomUUID();
+                AirData airData = new AirData(uuid.toString(),mPm25,mPm10,mPm1);
                 mOverallAirOpinion = AirDataUtils.computeAirQuality(airData);
+
+                setUpRequestDeviceTask(airData);
+
                 if(isBottomSheetDisplayed != true)
                     bottomSheetDialogFragment.show(getSupportFragmentManager(),bottomSheetDialogFragment.getTag());
                 else {
@@ -573,6 +620,35 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
+    private AirData setAirDataForUpload(AirData airdata) throws SecurityException{
+        AirData modifiedAirData = airdata;
+        if(!areLocationServicesEnabled(this)){
+            Log.i(TAG,"Location services disabled in setAirDataForUpload");
+            requestLocationEnable();
+            return airdata;
+        }
+        mFusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                Log.d(TAG,"Getting last location Success in setAirDataForUpload");
+                modifiedAirData.setLocation(String.valueOf(location.getLatitude())+","+String.valueOf(location.getLongitude()));
+            }
+
+        });
+        UUID uuid = UUID.randomUUID();
+        modifiedAirData.setId(uuid.toString());
+        Log.d(TAG,(new Gson()).toJson(modifiedAirData));
+        return modifiedAirData;
+    }
+
+    private void setUpRequestDeviceTask(AirData airData) {
+        AirData airDataToAdd = null;
+        RequestDeviceAirDataTask requestDeviceAirDataTask = new RequestDeviceAirDataTask(this);
+        airDataToAdd = setAirDataForUpload(airData);
+        Log.d(TAG,"Airdata to add : "+new Gson().toJson(airDataToAdd));
+        requestDeviceAirDataTask.execute(airDataToAdd);
+    }
+
 
     @Override
     public void receivedUpdate(String action) {
@@ -597,10 +673,9 @@ public class MainActivity extends AppCompatActivity
     }
     //------------------------------------
 
-
     @Override
     protected void onStop() {
-        mLocalBroadcastManager.unregisterReceiver(mBroadcastReceiver);
+
         super.onStop();
     }
 
@@ -608,7 +683,10 @@ public class MainActivity extends AppCompatActivity
     protected void onDestroy() {
         if(mBtGatt != null) mBtGatt.close();
         Intent stopService = new Intent(this,WebsocketService.class);
+        mLocalBroadcastManager.unregisterReceiver(mBroadcastReceiver);
         stopService(stopService);
+        mDb.close();
+
         super.onDestroy();
     }
 
@@ -638,5 +716,28 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void isFragmentDisplayed(boolean value) {
         isBottomSheetDisplayed = value;
+    }
+
+
+    public class WebSocketBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG,"wsBroadcastReceiver");
+            if(intent.hasExtra(WebsocketService.AIR_DATA_WSINTENT_KEY)) {
+                String airDataJson = intent.getStringExtra(WebsocketService.AIR_DATA_WSINTENT_KEY);
+                AirData airData = new Gson().fromJson(airDataJson, AirData.class);
+                Log.d(TAG, airDataJson);
+                String[] location = {"", ""};
+                if (airData != null) location = airData.getLocation().split(",");
+
+                mDb.execSQL(AirDataUtils.insertDataSql(airData));
+
+                if (location.length > 1)
+                    mHeatMapList.add(new WeightedLatLng(new LatLng(Double.parseDouble(location[0]), Double.parseDouble(location[1])), AirDataUtils.computeAQI(airData)));
+
+                mProvider.setWeightedData(mHeatMapList);
+                mOverlay.clearTileCache();
+            } else return;
+        }
     }
 }

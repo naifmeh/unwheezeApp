@@ -8,8 +8,10 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Process;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.google.gson.Gson;
 import com.unwheeze.unwheezeapp.R;
 import com.unwheeze.unwheezeapp.beans.AirData;
 import com.unwheeze.unwheezeapp.network.AirDataSockets;
@@ -33,13 +35,9 @@ public class WebsocketService extends Service implements AirDataSocketsListener{
     private AirDataSockets mAirDataSockets;
     private WebSocket mWs;
     private OkHttpClient mClient;
+    private LocalBroadcastManager mLocalBroadcastManager;
 
-    public class WebSocketBinder extends Binder {
-        public WebsocketService getService() {
-            return WebsocketService.this;
-        }
-        
-    }
+    public static final String AIR_DATA_WSINTENT_KEY = "AIRDATAWSINTENTKEY";
 
     @Override
     public void onCreate() {
@@ -56,11 +54,12 @@ public class WebsocketService extends Service implements AirDataSocketsListener{
                 .appendPath(RequestsScheme.WS_REALTIME)
                 .appendPath(RequestsScheme.WS_AIRDATA);
         Uri uri = uriBuilder.build();
-
+        Log.d(TAG,"Ws address : "+uri.toString());
         Request request = new Request.Builder().url(uri.toString()).build();
-
+        mClient.retryOnConnectionFailure();
         mWs = mClient.newWebSocket(request,mAirDataSockets);
 
+        mLocalBroadcastManager = LocalBroadcastManager.getInstance(this);
 
     }
 
@@ -75,7 +74,7 @@ public class WebsocketService extends Service implements AirDataSocketsListener{
     @Override
     public IBinder onBind(Intent intent) {
 
-        return new WebSocketBinder();
+        return null;
     }
 
     @Override
@@ -89,6 +88,9 @@ public class WebsocketService extends Service implements AirDataSocketsListener{
     {
         Intent newDataIntent = new Intent();
         newDataIntent.setAction(getString(R.string.websocketDataReceivedIntent));
+        Gson gson = new Gson();
+        newDataIntent.putExtra(AIR_DATA_WSINTENT_KEY,gson.toJson(airData));
+        mLocalBroadcastManager.sendBroadcast(newDataIntent);
         Log.d(TAG,"Ws listener called from service");
     }
 }

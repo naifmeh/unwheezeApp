@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="@dimen/errorPopUpWidth"
+    android:layout_height="@dimen/errorPopUpHeight">
+
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="110dp"
+        android:layout_marginTop="0dp"
+        android:background="@color/errorRed"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <ImageView
+        android:id="@+id/ErrorBackground"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginStart="212dp"
+        app:layout_constraintBottom_toBottomOf="@+id/lowerView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/error_quit_icon" />
+
+    <View
+        android:id="@+id/lowerView"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginStart="0dp"
+        android:background="@color/floralWhite"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:id="@+id/errorPopUpTitle"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/errorTitlePopup"
+        android:textColor="@color/titleLabelColor"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/errorPopUpMessage"
+        android:textColor="@color/floralWhite"
+        android:fontFamily="sans-serif-light"
+        android:layout_width="0dp"
+        android:layout_height="35dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/view"
+        app:layout_constraintTop_toBottomOf="@+id/errorPopUpTitle"
+        tools:text="Some very special error message that will make hate. " />
+
+    <Button
+        android:id="@+id/errorOkButton"
+        android:text="OK"
+        android:textColor="@color/floralWhite"
+        android:layout_width="@dimen/errorOkBtnWidth"
+        android:layout_height="@dimen/errorOkBtnHeight"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/errorRed"
+        app:layout_constraintEnd_toEndOf="@+id/lowerView"
+        app:layout_constraintTop_toTopOf="@+id/lowerView" />
+
+
+
+</android.support.constraint.ConstraintLayout>

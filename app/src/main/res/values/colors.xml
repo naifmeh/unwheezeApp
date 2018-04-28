@@ -18,5 +18,8 @@
     <color name="sadEmojiRed">#F54B09</color>
     <color name="neutralEmojiOrange">#ff9933</color>
 
+    <color name="errorRed">#D45659</color>
+    <color name="darkerErrorRed">#F35E64</color>
+
 
 </resources>

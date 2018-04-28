@@ -1,35 +1,35 @@
 package com.unwheeze.unwheezeapp.activities;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.api.GoogleApi;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.unwheeze.unwheezeapp.R;
+import com.unwheeze.unwheezeapp.network.AirDataRequestSingleton;
+import com.unwheeze.unwheezeapp.network.RequestsScheme;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CountDownLatch;
 
 public class SplashActivity extends AppCompatActivity {
     //TODO: Load in AsyncTask
@@ -60,32 +60,9 @@ public class SplashActivity extends AppCompatActivity {
         super.onStart();
         mainBundle = new Bundle();
 
-       /* if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            hasBTE = false;
-        }
 
-        GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
-        int errorCode;
-        if((errorCode = googleApiAvailability.isGooglePlayServicesAvailable(this)) == ConnectionResult.SUCCESS) {
-            hasGoogleApi = true;
-        } else {
-            googleApiAvailability.getErrorDialog(this,errorCode,REQUEST_CODE_GOOGLE_API);
-        }
-
-        mainBundle.putBoolean(BTE_KEY,hasBTE);
-        mainBundle.putBoolean(GOOGLE_API_KEY,hasGoogleApi);
-
-        mSharedPrefs = this.getSharedPreferences(getString(R.string.shared_prefs_file_key),this.MODE_PRIVATE);
-
-        if(hasGoogleApi) {
-            Log.d(TAG,"Getting last known location...");
-            saveLastKnownLocation();
-        }
-        displayMainActivity();
-        */
-
-       SplashAsyncTask splashAsyncTask = new SplashAsyncTask();
-       splashAsyncTask.execute(this);
+       SplashAsyncTask splashAsyncTask = new SplashAsyncTask(this);
+       splashAsyncTask.execute();
 
 
     }
@@ -147,12 +124,42 @@ public class SplashActivity extends AppCompatActivity {
         startActivity(intentMain);
     }
 
-    public class SplashAsyncTask extends AsyncTask<Context,Void,Integer> {
 
+    public class SplashAsyncTask extends AsyncTask<Void,Void,Integer> {
+
+        private RequestQueue queue;
+        private Uri mUri;
+        private Context mCtx;
+
+        public SplashAsyncTask(Context context) {
+            mCtx = context;
+            queue = AirDataRequestSingleton.getInstance(mCtx).getRequestQueue();
+
+            Uri.Builder builder = new Uri.Builder();
+            builder.scheme(RequestsScheme.HTTP_SCHEME)
+                    .encodedAuthority(RequestsScheme.AUTHORITY)
+                    .encodedPath(RequestsScheme.APP_PATH)
+                    .appendPath(RequestsScheme.AUTH_PATH)
+                    .appendPath(RequestsScheme.AUTH_API_TOKEN);
+
+            mUri = builder.build();
+        }
 
         @Override
-        protected Integer doInBackground(Context... context) {
+        protected Integer doInBackground(Void... voids) {
             Bundle bundle = new Bundle();
+            mSharedPrefs = mCtx.getSharedPreferences(getString(R.string.shared_prefs_file_key),mCtx.MODE_PRIVATE);
+
+            StringRequest apiKeyRequest = new StringRequest(Request.Method.GET,mUri.toString(),(response)-> {
+
+                JsonObject jsonObject = (new Gson()).fromJson(response, JsonObject.class);
+                SharedPreferences.Editor editor = mSharedPrefs.edit();
+                editor.putString(getString(R.string.shared_prefs_file_api_key), jsonObject.get("key").getAsString());
+                Log.d(TAG, jsonObject.get("key").getAsString());
+                editor.commit();
+
+
+            }, (error) -> {});
 
             if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
                 hasBTE = false;
@@ -160,7 +167,7 @@ public class SplashActivity extends AppCompatActivity {
 
             GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
             int errorCode;
-            if((errorCode = googleApiAvailability.isGooglePlayServicesAvailable(context[0])) == ConnectionResult.SUCCESS) {
+            if((errorCode = googleApiAvailability.isGooglePlayServicesAvailable(mCtx)) == ConnectionResult.SUCCESS) {
                 hasGoogleApi = true;
             } else {
                 displayErrorDialog(googleApiAvailability,errorCode);
@@ -168,15 +175,16 @@ public class SplashActivity extends AppCompatActivity {
 
 
             bundle.putBoolean(BTE_KEY,hasBTE);
-            bundle.putBoolean(GOOGLE_API_KEY,hasGoogleApi);
+            bundle.putBoolean(GOOGLE_API_KEY,hasGoogleApi); //TODO: Why tf do I have a bundle
 
-            mSharedPrefs = context[0].getSharedPreferences(getString(R.string.shared_prefs_file_key),context[0].MODE_PRIVATE);
+
 
             if(hasGoogleApi) {
                 Log.d(TAG,"Getting last known location...");
                 saveLastKnownLocation();
             }
             Log.d(TAG,"Done asynctask");
+            queue.add(apiKeyRequest);
             //TODO: Remove thread.sleep
             try {
                 Thread.sleep(1000);
@@ -191,5 +199,7 @@ public class SplashActivity extends AppCompatActivity {
             Log.d(TAG,"In post execute");
             displayMainActivity();
         }
+
+
     }
 }

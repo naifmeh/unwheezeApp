@@ -7,6 +7,7 @@ import java.io.Serializable;
 
 public class AirData {
 
+    private String id;
     private String location;
     private float pm25;
     private float pm10;
@@ -17,28 +18,35 @@ public class AirData {
     public AirData() {
     }
 
-    public AirData(String location, float pm25, float pm10, String datetime, String userID) {
+    public AirData(String id,String location, float pm25, float pm10, String datetime, String userID) {
         this.location = location;
         this.pm25 = pm25;
         this.pm10 = pm10;
         this.datetime = datetime;
         this.userID = userID;
+        this.id = id;
     }
 
-    public AirData(String location, float pm25, float pm10, float pm1, String datetime, String userID) {
+
+
+    public AirData(String id, String location, float pm25, float pm10, float pm1, String datetime, String userID) {
         this.location = location;
         this.pm25 = pm25;
         this.pm10 = pm10;
         this.pm1 = pm1;
         this.datetime = datetime;
         this.userID = userID;
+        this.id = id;
+
     }
 
-    public AirData(float pm25, float pm10, float pm1) {
+    public AirData(String id,float pm25, float pm10, float pm1) {
+        this.id = id;
         this.pm25 = pm25;
         this.pm10 = pm10;
         this.pm1 = pm1;
     }
+
 
     public String getLocation() {
         return location;
@@ -86,6 +94,14 @@ public class AirData {
 
     public void setUserID(String userID) {
         this.userID = userID;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     @Override

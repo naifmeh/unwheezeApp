@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Unwheeze</string>
 
-    <string name="bluetoothDeviceName">ESP32 UART Test</string>
+    <string name="bluetoothDeviceName">MyESP32</string>
     <string name="serviceBtUuid">6E400001-B5A3-F393-E0A9-E50E24DCCA9E</string>
     <string name="characWriteBtUuid">6E400002-B5A3-F393-E0A9-E50E24DCCA9E</string>
     <string name="characReadBtUuid">6E400003-B5A3-F393-E0A9-E50E24DCCA9E</string>
@@ -11,6 +11,7 @@
     <string name="shared_prefs_file_current_coarse_location">CURRENT_LOCATION</string>
     <string name="shared_prefs_file_current_coarse_longitude">CURRENT_LONGITUDE</string>
     <string name="shared_prefs_file_current_coarse_latitude">CURRENT_LATITUDE</string>
+    <string name="shared_prefs_file_api_key">API_KEY</string>
 
     <string name="countryName">France</string>
 
@@ -36,6 +37,8 @@
     <string name="toolbarProfile">Profile</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_splash">SplashActivity</string>
+
+    <string name="errorTitlePopup">Error</string>
 
 
 </resources>

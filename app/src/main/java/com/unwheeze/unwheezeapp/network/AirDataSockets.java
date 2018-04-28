@@ -3,6 +3,9 @@ package com.unwheeze.unwheezeapp.network;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.unwheeze.unwheezeapp.beans.AirData;
+
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
@@ -29,7 +32,9 @@ public class AirDataSockets extends WebSocketListener {
 
     @Override
     public void onMessage(WebSocket webSocket, String text) {
-        mListener.onDataReceived(null);
+        Gson gson = new Gson();
+
+        mListener.onDataReceived(gson.fromJson(text, AirData.class));
         super.onMessage(webSocket, text);
     }
 
@@ -40,7 +45,7 @@ public class AirDataSockets extends WebSocketListener {
 
     @Override
     public void onClosing(WebSocket webSocket, int code, String reason) {
-        Log.d(TAG,"Received a new message");
+        Log.d(TAG,"Closing socket");
         super.onClosing(webSocket, code, reason);
     }
 
