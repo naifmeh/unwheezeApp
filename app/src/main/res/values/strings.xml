@@ -26,7 +26,7 @@
 
     <string name="pm10TitleLabel">PM10</string>
     <string name="pm25TitleLabel">PM2.5</string>
-    <string name="no2TitleLabel">NO2</string>
+    <string name="no2TitleLabel">PM1</string>
     <string name="measureUnit">mg/m²</string>
 
     <string name="happyEmojiLabel">GOOD</string>

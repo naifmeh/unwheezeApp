@@ -18,6 +18,7 @@ public class RequestsScheme {
     public static String AIRDATA_PATH = "airData";
     public static String AIRDATA_GETALL = "getAirCollection";
     public static String AIRDATA_PUTAIRDATA = "putAirData";
+    public static String AIRDATA_GETNEAREST = "getNearest";
 
     public static String AUTH_PATH = "auth";
     public static String AUTH_API_TOKEN = "clientToken";

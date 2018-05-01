@@ -95,18 +95,17 @@ public class AirDataLoader extends AsyncTaskLoader<String> {
                 for(int i=0;i<arrayReps.size();i++) {
                         String jsonObj = arrayReps.get(i).toString();
                         ContentValues values = AirDataUtils.populateContentValue(gson.fromJson(jsonObj,AirData.class));
-                        db.insert(AirDataContract.AirDataEntry.TABLE_NAME,null,values);
+                        long resp = db.insert(AirDataContract.AirDataEntry.TABLE_NAME,null,values);
+                        Log.d(TAG,"Insertion row : "+resp);
                 }
                 db.close();
         }, (error) -> Log.d(TAG,"onErrorResponse "+error.getMessage())) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String,String> params = new HashMap<String,String>();
-                String api_key="none";
-                String sharedApiKey = mCtx.getString(R.string.shared_prefs_file_api_key);
-                if(mSharedPrefs != null && mSharedPrefs.contains(sharedApiKey)) {
-                    api_key = mSharedPrefs.getString(sharedApiKey,"none");
-                }
+                NetworkUtils networkUtils = new NetworkUtils(getContext());
+                String api_key=networkUtils.getApiKeyFromPrefs();
+
                 params.put("X-Api-Key",api_key);
 
                 return params;

@@ -6,4 +6,284 @@
     android:layout_height="match_parent"
     tools:context="com.unwheeze.unwheezeapp.activities.AirDetailsActivity">
 
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/airDetailsAppBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="0dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="0dp"
+        android:elevation="@dimen/logoElevation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/AirDetailsToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:layout_marginEnd="0dp"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="0dp"
+            android:background="@color/colorPrimary"
+            android:elevation="@dimen/logoElevation"
+            android:theme="@style/Base.ThemeOverlay.AppCompat.ActionBar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+
+        </android.support.v7.widget.Toolbar>
+    </android.support.design.widget.AppBarLayout>
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/airDetailsChart"
+        android:layout_width="match_parent"
+        android:layout_height="275dp"
+        android:layout_marginTop="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/airDetailsAppBarLayout" />
+
+    <ImageView
+        android:id="@+id/airDetailsLocIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:src="@drawable/ic_location_on_green_24px"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/airDetailsChart" />
+
+    <TextView
+        android:id="@+id/airDetailsLocationText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:fontFamily="sans-serif-medium"
+        android:textSize="18sp"
+        android:textColor="@color/titleLabelColorDark"
+        app:layout_constraintBottom_toBottomOf="@+id/airDetailsLocIcon"
+        app:layout_constraintStart_toEndOf="@+id/airDetailsLocIcon"
+        app:layout_constraintTop_toTopOf="@+id/airDetailsLocIcon"
+        tools:text="35.2565,5.7779" />
+
+    <View
+        android:id="@+id/firstSeparator"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:alpha="0.8"
+        android:layout_marginEnd="0dp"
+        android:layout_marginStart="0dp"
+        android:background="@android:color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/airDetailsLocIcon" />
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/insideConstraint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/firstSeparator">
+
+
+        <ProgressBar
+            android:id="@+id/pm10ProgressBarAirDetails"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="@dimen/progressBarSize"
+            android:layout_height="@dimen/progressBarSize"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:max="1000"
+            android:progress="120"
+            android:progressDrawable="@drawable/circular_progressbar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/pm10TitleLabelAirDetails"
+            style="@style/titleLabelsAirDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="0dp"
+            android:text="@string/pm10TitleLabel"
+            app:layout_constraintEnd_toEndOf="@+id/pm10ProgressBarAirDetails"
+            app:layout_constraintStart_toStartOf="@+id/pm10ProgressBarAirDetails"
+            app:layout_constraintTop_toBottomOf="@+id/pm10ProgressBarAirDetails"
+            tools:text="PM10" />
+
+        <TextView
+            android:id="@+id/pm10ValueAirDetails"
+            style="@style/measureValuesAirDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginEnd="0dp"
+            android:layout_marginTop="0dp"
+            android:text="120"
+            app:layout_constraintBottom_toTopOf="@+id/pm10TitleLabelAirDetails"
+            app:layout_constraintEnd_toEndOf="@+id/pm10ProgressBarAirDetails"
+            app:layout_constraintStart_toStartOf="@+id/pm10ProgressBarAirDetails"
+            app:layout_constraintTop_toTopOf="@+id/pm10ProgressBarAirDetails"
+            tools:text="120" />
+
+        <TextView
+            android:id="@+id/measureUnitLabel1AirDetails"
+            style="@style/titleLabelsAirDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="0dp"
+            android:text="@string/measureUnit"
+            android:textSize="@dimen/measureUnitSize"
+            app:layout_constraintEnd_toEndOf="@+id/pm10ValueAirDetails"
+            app:layout_constraintStart_toStartOf="@+id/pm10ValueAirDetails"
+            app:layout_constraintTop_toBottomOf="@+id/pm10ValueAirDetails" />
+
+        <ProgressBar
+            android:id="@+id/pm25ProgressBarAirDetails"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="@dimen/progressBarSize"
+            android:layout_height="@dimen/progressBarSize"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:max="1000"
+            android:progress="250"
+            android:progressDrawable="@drawable/circular_progressbar"
+            app:layout_constraintStart_toEndOf="@+id/pm10ProgressBarAirDetails"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/pm25TitleLabelAirDetails"
+            style="@style/titleLabelsAirDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="0dp"
+            android:text="@string/pm25TitleLabel"
+            app:layout_constraintEnd_toEndOf="@+id/pm25ProgressBarAirDetails"
+            app:layout_constraintStart_toStartOf="@+id/pm25ProgressBarAirDetails"
+            app:layout_constraintTop_toBottomOf="@+id/pm25ProgressBarAirDetails"
+            tools:text="PM25" />
+
+        <TextView
+            android:id="@+id/pm25ValueAirDetails"
+            style="@style/measureValuesAirDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginEnd="0dp"
+            android:layout_marginTop="0dp"
+            android:text="250"
+            app:layout_constraintBottom_toTopOf="@+id/pm25TitleLabelAirDetails"
+            app:layout_constraintEnd_toEndOf="@+id/pm25ProgressBarAirDetails"
+            app:layout_constraintStart_toStartOf="@+id/pm25ProgressBarAirDetails"
+            app:layout_constraintTop_toTopOf="@+id/pm25ProgressBarAirDetails"
+            tools:text="250" />
+
+        <TextView
+            android:id="@+id/measureUnitLabel2AirDetails"
+            style="@style/titleLabelsAirDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="0dp"
+            android:text="@string/measureUnit"
+            android:textSize="@dimen/measureUnitSize"
+            app:layout_constraintEnd_toEndOf="@+id/pm25ValueAirDetails"
+            app:layout_constraintStart_toStartOf="@+id/pm25ValueAirDetails"
+            app:layout_constraintTop_toBottomOf="@+id/pm25ValueAirDetails" />
+
+        <ProgressBar
+            android:id="@+id/no2ProgressBarAirDetails"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="@dimen/progressBarSize"
+            android:layout_height="@dimen/progressBarSize"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:max="1000"
+            android:progress="850"
+            android:progressDrawable="@drawable/circular_progressbar"
+            app:layout_constraintStart_toEndOf="@+id/pm25ProgressBarAirDetails"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/no2TitleLabelAirDetails"
+            style="@style/titleLabelsAirDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="0dp"
+            android:text="@string/no2TitleLabel"
+            app:layout_constraintEnd_toEndOf="@+id/no2ProgressBarAirDetails"
+            app:layout_constraintStart_toStartOf="@+id/no2ProgressBarAirDetails"
+            app:layout_constraintTop_toBottomOf="@+id/no2ProgressBarAirDetails"
+            tools:text="PM25" />
+
+        <TextView
+            android:id="@+id/no2ValueAirDetails"
+            style="@style/measureValuesAirDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginEnd="0dp"
+            android:layout_marginTop="0dp"
+            android:text="1000"
+            app:layout_constraintBottom_toTopOf="@+id/no2TitleLabelAirDetails"
+            app:layout_constraintEnd_toEndOf="@+id/no2ProgressBarAirDetails"
+            app:layout_constraintStart_toStartOf="@+id/no2ProgressBarAirDetails"
+            app:layout_constraintTop_toTopOf="@+id/no2ProgressBarAirDetails"
+            tools:text="1000" />
+
+        <TextView
+            android:id="@+id/measureUnitLabel3AirDetails"
+            style="@style/titleLabelsAirDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="0dp"
+            android:text="@string/measureUnit"
+            android:textSize="@dimen/measureUnitSize"
+            app:layout_constraintEnd_toEndOf="@+id/no2ValueAirDetails"
+            app:layout_constraintStart_toStartOf="@+id/no2ValueAirDetails"
+            app:layout_constraintTop_toBottomOf="@+id/no2ValueAirDetails" />
+
+
+        <ImageView
+            android:id="@+id/resultEmojiAirDetails"
+            android:layout_width="@dimen/resultEmojiSize"
+            android:layout_height="@dimen/resultEmojiSize"
+            android:layout_marginEnd="0dp"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/no2ProgressBarAirDetails"
+            app:layout_constraintTop_toTopOf="@+id/no2ProgressBarAirDetails"
+            app:srcCompat="@drawable/ic_neutral_icon_24px" />
+
+        <TextView
+            android:id="@+id/resultVerboseAirDetails"
+            style="@style/titleLabelsAirDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="0dp"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="0dp"
+            android:text="@string/neutralEmojiLabel"
+            app:layout_constraintEnd_toEndOf="@+id/resultEmojiAirDetails"
+            app:layout_constraintStart_toStartOf="@+id/resultEmojiAirDetails"
+            app:layout_constraintTop_toBottomOf="@+id/resultEmojiAirDetails"
+            tools:text="AVERAGE" />
+
+
+    </android.support.constraint.ConstraintLayout>
+
+
+
 </android.support.constraint.ConstraintLayout>

@@ -12,7 +12,9 @@
     <color name="floralWhite" >#FBF7F2</color>
 
     <color name="titleLabelColor">#FFFFFF</color>
+    <color name="titleLabelColorDark">#000000</color>
     <color name="valueLabelColor">#FFFFFF</color>
+    <color name="valueLabelColorDark">#000000</color>
 
     <color name="happyEmojiGreen">#35961B</color>
     <color name="sadEmojiRed">#F54B09</color>
@@ -20,6 +22,8 @@
 
     <color name="errorRed">#D45659</color>
     <color name="darkerErrorRed">#F35E64</color>
+
+    <color name="paleGreen">#6BF3AD</color>
 
 
 </resources>

@@ -28,8 +28,21 @@
         <item name="android:fontFamily">sans-serif-light</item>
     </style>
 
+    <style name="titleLabelsAirDetails">
+        <item name="android:textColor">@color/titleLabelColorDark</item>
+        <item name="android:textSize">@dimen/titleMeasureLabel</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+    </style>
+
     <style name="measureValues">
         <item name="android:textColor">@color/valueLabelColor</item>
+        <item name="android:textSize">@dimen/valueMeasureLabel</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="measureValuesAirDetails">
+        <item name="android:textColor">@color/valueLabelColorDark</item>
         <item name="android:textSize">@dimen/valueMeasureLabel</item>
         <item name="android:fontFamily">sans-serif-black</item>
         <item name="android:textStyle">bold</item>

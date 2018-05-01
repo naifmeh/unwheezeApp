@@ -2,10 +2,14 @@ package com.unwheeze.unwheezeapp.beans;
 
 
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-public class AirData {
+public class AirData implements Comparable<AirData>{
 
     private String id;
     private String location;
@@ -109,5 +113,19 @@ public class AirData {
         return getLocation()+", "+getPm10();
     }
 
+    @Override
+    public int compareTo(@NonNull AirData airData) {
+        SimpleDateFormat formater = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        Date thisDate = new Date();
+        Date toCompareDate = new Date();
+        try {
+            thisDate = formater.parse(this.getDatetime());
+            toCompareDate = formater.parse(airData.getDatetime());
+        } catch (ParseException e) {
+            e.printStackTrace(); //TODO: Changer l'exception handling
+        }
 
+
+        return thisDate.compareTo(toCompareDate);
+    }
 }

@@ -71,6 +71,9 @@ import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 import com.unwheeze.unwheezeapp.R;
@@ -82,8 +85,11 @@ import com.unwheeze.unwheezeapp.database.AirDataContract;
 import com.unwheeze.unwheezeapp.database.AirDataDbHelper;
 import com.unwheeze.unwheezeapp.fragments.MeasureDialogFragment;
 import com.unwheeze.unwheezeapp.network.AirDataLoader;
+import com.unwheeze.unwheezeapp.network.NetworkUtils;
 import com.unwheeze.unwheezeapp.services.WebsocketService;
 import com.unwheeze.unwheezeapp.utils.AirDataUtils;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -94,13 +100,14 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity
         implements OnMapReadyCallback, LoaderManager.LoaderCallbacks<String>, BluetoothActions,
-        MeasureDialogFragment.MeasureDialogFragmentCallback{
+        MeasureDialogFragment.MeasureDialogFragmentCallback {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private Toolbar mToolbar;
     private FloatingActionButton mConnectFab;
     private FloatingActionButton mMeasureFabButton;
+    private FloatingActionButton mSearchFab;
 
     private BottomSheetDialogFragment bottomSheetDialogFragment;
     private boolean isBottomSheetDisplayed = false;
@@ -132,7 +139,7 @@ public class MainActivity extends AppCompatActivity
     private char mMeasureTrigger = 'B';
     private int mOverallAirOpinion = AirDataUtils.AIR_QUALITY_NEUTRAL;
 
-    private final Handler mHandler = new Handler();
+    private Handler mHandler;
     private WebsocketService mWsService; //TODO: Handle service here
     private BroadcastReceiver mBroadcastReceiver;
     private LocalBroadcastManager mLocalBroadcastManager;
@@ -174,7 +181,7 @@ public class MainActivity extends AppCompatActivity
 
         mConnectFab = (FloatingActionButton) findViewById(R.id.fab_menu_btConnect);
         mMeasureFabButton = (FloatingActionButton) findViewById(R.id.fab_menu_measure);
-
+        mSearchFab = (FloatingActionButton) findViewById(R.id.fab_menu_search);
 
 
         //--- LOADING MAP
@@ -215,7 +222,7 @@ public class MainActivity extends AppCompatActivity
                         Log.d(TAG, "Scanning...");
                     } else {
                         Log.d(TAG,"Disconnecting");
-                        mBtGatt.disconnect(); //TODO: Disconnect the device
+                        mBtGatt.disconnect();
                     }
                 }
             }
@@ -225,6 +232,15 @@ public class MainActivity extends AppCompatActivity
         //TODO: Remove
         mMeasureFabButton.setOnClickListener((view)-> {
             writeCharacteristic('B');
+        });
+
+        mSearchFab.setOnClickListener((view)->{
+            NetworkUtils networkUtils = new NetworkUtils(this);
+            networkUtils.getAllAirDataElements((jsonArray)->{
+                Intent intent = new Intent(this,AirDetailsActivity.class);
+                intent.putExtra(AirDetailsActivity.JSONARRAY_DATA_INTENT_KEY,jsonArray.toString());
+                startActivity(intent);
+            });
 
         });
 
@@ -323,7 +339,7 @@ public class MainActivity extends AppCompatActivity
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, final int id) {
-                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                        startActivityForResult(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS),REQUEST_ENABLE_LOCATION);
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -381,6 +397,7 @@ public class MainActivity extends AppCompatActivity
 
         mScanning = true;
         mConnectFab.setLabelText(getResources().getString(R.string.scanningBte));
+        mHandler = new Handler();
         mHandler.postDelayed(()->{
             stopScan();
         },SCAN_PERIOD);
@@ -519,6 +536,18 @@ public class MainActivity extends AppCompatActivity
                 mainMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 12));
         }
 
+        mainMap.setOnMapClickListener((latlng)->{
+            Log.d(TAG,"Point cliqué : "+latlng.latitude+" , "+latlng.longitude);
+
+            NetworkUtils networkUtils = new NetworkUtils(this);
+            networkUtils.getNearest(latlng.latitude,latlng.longitude,null,(jsonArray)->{
+                Log.d(TAG,"GET NEAREST JSON ARRAY "+ jsonArray.toString());
+                if(jsonArray.size() == 0) return; //TODO: Display warning message
+                /*Intent intent = new Intent(this,AirDetailsActivity.class);
+                intent.putExtra(AirDetailsActivity.JSONARRAY_DATA_INTENT_KEY,jsonArray.toString());
+                startActivity(intent);*/
+            });
+        });
 
 
     }
@@ -675,7 +704,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onStop() {
-
+        mHandler = null;
         super.onStop();
     }
 
@@ -717,6 +746,7 @@ public class MainActivity extends AppCompatActivity
     public void isFragmentDisplayed(boolean value) {
         isBottomSheetDisplayed = value;
     }
+
 
 
     public class WebSocketBroadcastReceiver extends BroadcastReceiver {
