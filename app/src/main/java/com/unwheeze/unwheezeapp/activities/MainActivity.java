@@ -66,7 +66,10 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -209,6 +212,7 @@ public class MainActivity extends AppCompatActivity
         //----- Starting Loader
 
         getSupportLoaderManager().initLoader(LOADER_AIRDATA_TAG,null,this).forceLoad();
+
         //Starting location manager
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         //------ Bluetooth Handling
@@ -257,6 +261,8 @@ public class MainActivity extends AppCompatActivity
     protected void onStart() {
         super.onStart();
     }
+
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -502,7 +508,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return super.onOptionsItemSelected(item);
+        switch(item.getItemId()) {
+            case R.id.main_toolbar_refresh:
+                getSupportLoaderManager().restartLoader(LOADER_AIRDATA_TAG,null,this).forceLoad();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
     }
 
     //------------------- MAP
@@ -523,6 +536,7 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(this,"Couldn't load data ",Toast.LENGTH_LONG)
                     .show();
         }
+
 
         if(mSharedPrefs != null && mSharedPrefs.contains(getString(R.string.shared_prefs_file_current_coarse_latitude))) {
             Double longitude = Double.longBitsToDouble(mSharedPrefs.getLong(getString(R.string.shared_prefs_file_current_coarse_longitude),0));
@@ -549,7 +563,31 @@ public class MainActivity extends AppCompatActivity
             });
         });
 
+        mainMap.setOnMarkerClickListener(marker -> {
+            marker.setAlpha(1.f);
+            marker.setZIndex(1.f);
+            marker.showInfoWindow();
 
+
+            return true;
+        });
+
+    }
+
+    private MarkerOptions customizeMarker(AirData airData) {
+        /* Splitting position */
+        String[] position = airData.getLocation().split(",");
+        LatLng latlng = new LatLng(Float.parseFloat(position[0]),Float.parseFloat(position[1]));
+
+        /* Marker options*/
+        MarkerOptions markerOptions = new MarkerOptions().position(latlng);
+        markerOptions.title("PM1: "+airData.getPm1()+"- PM10: "+airData.getPm10()+"- PM25: "+airData.getPm10());
+        markerOptions.icon(BitmapDescriptorFactory
+                .defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+        markerOptions.alpha(0.8f);
+
+
+        return markerOptions;
     }
 
    private ArrayList<WeightedLatLng> readItems() { //PROBLEME ICI
@@ -559,40 +597,24 @@ public class MainActivity extends AppCompatActivity
 
        ArrayList<WeightedLatLng> list = new ArrayList<WeightedLatLng>();
 
-       String[] projection = {
-               AirDataContract.AirDataEntry.COLUMN_NAME_LOCATION,
-               AirDataContract.AirDataEntry.COLUMN_NAME_PM25,
-               AirDataContract.AirDataEntry.COLUMN_NAME_PM10,
-               AirDataContract.AirDataEntry.COLUMN_NAME_PM1
-       };
-
-       //TODO : Maybe on a different thread ?
-       Cursor cursor = db.query(
-               AirDataContract.AirDataEntry.TABLE_NAME,
-               null,
-               null,
-               null,
-               null,
-               null,
-               null);
-
-       while(cursor.moveToNext()) {
-           String location = cursor.getString(cursor.getColumnIndexOrThrow(
-                   AirDataContract.AirDataEntry.COLUMN_NAME_LOCATION
-           ));
-           Log.d(TAG,location);
+       List<AirData> airDataList = AirDataUtils.getAirDataList(db);
+       for(AirData airData: airDataList) {
+           String location = airData.getLocation();
            if(location == null) continue;
+
            String[] position = location.split(",");
-
            LatLng latlng = new LatLng(Float.parseFloat(position[0]),Float.parseFloat(position[1]));
+           list.add(new WeightedLatLng(latlng,airData.getPm25()));
+           /* Setting markers */
+           Marker marker = mainMap.addMarker(customizeMarker(airData));
+           marker.setTag(airData.getId());
 
-           list.add(new WeightedLatLng(latlng,cursor.getFloat(
-                   cursor.getColumnIndexOrThrow(
-                           AirDataContract.AirDataEntry.COLUMN_NAME_PM25)))); //TODO: Algorithm to show overall data
        }
 
        return list;
    }
+
+
 
     //---------------- LOADER CALLBACKS
     @Override
@@ -603,7 +625,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
-        //mHeatMapList = readItems();
+        //onLoaderFinished();
     }
 
     @Override
@@ -762,8 +784,11 @@ public class MainActivity extends AppCompatActivity
 
                 mDb.execSQL(AirDataUtils.insertDataSql(airData));
 
-                if (location.length > 1)
-                    mHeatMapList.add(new WeightedLatLng(new LatLng(Double.parseDouble(location[0]), Double.parseDouble(location[1])), AirDataUtils.computeAQI(airData)));
+                if (location.length > 1) {
+                    LatLng latlng = new LatLng(Double.parseDouble(location[0]), Double.parseDouble(location[1]));
+                    mHeatMapList.add(new WeightedLatLng(latlng, AirDataUtils.computeAQI(airData)));
+                    mainMap.addMarker(customizeMarker(airData));
+                }
 
                 mProvider.setWeightedData(mHeatMapList);
                 mOverlay.clearTileCache();

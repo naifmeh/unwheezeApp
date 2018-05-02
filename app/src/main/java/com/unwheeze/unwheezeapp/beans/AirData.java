@@ -22,6 +22,13 @@ public class AirData implements Comparable<AirData>{
     public AirData() {
     }
 
+    public AirData(String location, float pm1,float pm25, float pm10) {
+        this.location = location;
+        this.pm25 = pm25;
+        this.pm10 = pm10;
+        this.pm1 = pm1;
+    }
+
     public AirData(String id,String location, float pm25, float pm10, String datetime, String userID) {
         this.location = location;
         this.pm25 = pm25;
@@ -44,12 +51,7 @@ public class AirData implements Comparable<AirData>{
 
     }
 
-    public AirData(String id,float pm25, float pm10, float pm1) {
-        this.id = id;
-        this.pm25 = pm25;
-        this.pm10 = pm10;
-        this.pm1 = pm1;
-    }
+
 
 
     public String getLocation() {

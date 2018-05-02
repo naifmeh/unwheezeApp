@@ -7,4 +7,9 @@
         android:icon="@drawable/ic_person_white_24px"
         app:showAsAction="always"
         android:orderInCategory="2" />
+    <item android:id="@+id/main_toolbar_refresh"
+        android:title="@string/toolbarRefresh"
+        android:icon="@drawable/ic_refresh_24px"
+        app:showAsAction="always"
+        android:orderInCategory="1" />
 </menu>

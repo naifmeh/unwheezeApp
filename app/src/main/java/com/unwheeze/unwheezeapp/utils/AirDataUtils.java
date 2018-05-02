@@ -1,12 +1,19 @@
 package com.unwheeze.unwheezeapp.utils;
 
 import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.android.volley.toolbox.StringRequest;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.heatmaps.WeightedLatLng;
 import com.unwheeze.unwheezeapp.beans.AirData;
 import com.unwheeze.unwheezeapp.database.AirDataContract;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by User on 21/03/2018.
@@ -62,6 +69,54 @@ public class AirDataUtils {
 
 
 
+    }
+
+    public static List<AirData> getAirDataList(@NonNull SQLiteDatabase db) {
+        String[] projection = {
+                AirDataContract.AirDataEntry.COLUMN_NAME_ID,
+                AirDataContract.AirDataEntry.COLUMN_NAME_LOCATION,
+                AirDataContract.AirDataEntry.COLUMN_NAME_PM25,
+                AirDataContract.AirDataEntry.COLUMN_NAME_PM10,
+                AirDataContract.AirDataEntry.COLUMN_NAME_PM1
+        };
+
+        List<AirData> airDataList = new ArrayList<>();
+
+        //TODO : Maybe on a different thread ?
+        Cursor cursor = db.query(
+                AirDataContract.AirDataEntry.TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+
+        while(cursor.moveToNext()) {
+            String location = cursor.getString(cursor.getColumnIndexOrThrow(
+                    AirDataContract.AirDataEntry.COLUMN_NAME_LOCATION
+            ));
+
+            String id = cursor.getString(cursor.getColumnIndexOrThrow(
+                    AirDataContract.AirDataEntry.COLUMN_NAME_ID
+            ));
+
+            float pm1 = cursor.getFloat(cursor.getColumnIndexOrThrow(
+                    AirDataContract.AirDataEntry.COLUMN_NAME_PM1
+            ));
+            float pm10 = cursor.getFloat(cursor.getColumnIndexOrThrow(
+                    AirDataContract.AirDataEntry.COLUMN_NAME_PM10
+            ));
+            float pm25 = cursor.getFloat(cursor.getColumnIndexOrThrow(
+                    AirDataContract.AirDataEntry.COLUMN_NAME_PM25
+            ));
+            if(location == null) continue;
+            AirData airData = new AirData(id,location,pm1,pm10,pm25,null,null);
+
+            airDataList.add(airData);
+        }
+
+        return airDataList;
     }
 
     public static String deleteTableSql(){
