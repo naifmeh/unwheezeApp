@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="250dp"
-    android:id="@+id/measureBottomSheet"
+    android:id="@+id/sampleDetailsBottomSheet"
     xmlns:tools="http://schemas.android.com/tools">
 
     <android.support.constraint.ConstraintLayout
@@ -12,10 +12,18 @@
         android:layout_height="match_parent"
         android:background="@color/floralBlue">
 
-
+        <ImageView
+            android:id="@+id/sampleDetailsQuitBtn"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="0dp"
+            android:src="@drawable/ic_clear_white_24px"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ProgressBar
-            android:id="@+id/pm10ProgressBar"
+            android:id="@+id/pm10ProgressBarSampleDetails"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="@dimen/progressBarSize"
             android:layout_height="@dimen/progressBarSize"
@@ -28,19 +36,19 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/pm10TitleLabel"
+            android:id="@+id/pm10TitleLabelSampleDetails"
             android:text="@string/pm10TitleLabel"
             style="@style/titleLabels"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="0dp"
-            app:layout_constraintEnd_toEndOf="@+id/pm10ProgressBar"
-            app:layout_constraintStart_toStartOf="@+id/pm10ProgressBar"
-            app:layout_constraintTop_toBottomOf="@+id/pm10ProgressBar"
+            app:layout_constraintEnd_toEndOf="@+id/pm10ProgressBarSampleDetails"
+            app:layout_constraintStart_toStartOf="@+id/pm10ProgressBarSampleDetails"
+            app:layout_constraintTop_toBottomOf="@+id/pm10ProgressBarSampleDetails"
             tools:text="PM10" />
 
         <TextView
-            android:id="@+id/pm10Value"
+            android:id="@+id/pm10ValueSampleDetails"
             android:text="120"
             style="@style/measureValues"
             android:layout_width="wrap_content"
@@ -48,14 +56,14 @@
             android:layout_marginBottom="0dp"
             android:layout_marginEnd="0dp"
             android:layout_marginTop="0dp"
-            app:layout_constraintBottom_toTopOf="@+id/pm10TitleLabel"
-            app:layout_constraintEnd_toEndOf="@+id/pm10ProgressBar"
-            app:layout_constraintStart_toStartOf="@+id/pm10ProgressBar"
-            app:layout_constraintTop_toTopOf="@+id/pm10ProgressBar"
+            app:layout_constraintBottom_toTopOf="@+id/pm10TitleLabelSampleDetails"
+            app:layout_constraintEnd_toEndOf="@+id/pm10ProgressBarSampleDetails"
+            app:layout_constraintStart_toStartOf="@+id/pm10ProgressBarSampleDetails"
+            app:layout_constraintTop_toTopOf="@+id/pm10ProgressBarSampleDetails"
             tools:text="120" />
 
         <TextView
-            android:id="@+id/measureUnitLabel1"
+            android:id="@+id/measureUnitLabel1SampleDetails"
             style="@style/titleLabels"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -63,12 +71,12 @@
             android:layout_marginTop="0dp"
             android:text="@string/measureUnit"
             android:textSize="@dimen/measureUnitSize"
-            app:layout_constraintEnd_toEndOf="@+id/pm10Value"
-            app:layout_constraintStart_toStartOf="@+id/pm10Value"
-            app:layout_constraintTop_toBottomOf="@+id/pm10Value" />
+            app:layout_constraintEnd_toEndOf="@+id/pm10ValueSampleDetails"
+            app:layout_constraintStart_toStartOf="@+id/pm10ValueSampleDetails"
+            app:layout_constraintTop_toBottomOf="@+id/pm10ValueSampleDetails" />
 
         <ProgressBar
-            android:id="@+id/pm25ProgressBar"
+            android:id="@+id/pm25ProgressBarSampleDetails"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="@dimen/progressBarSize"
             android:layout_height="@dimen/progressBarSize"
@@ -77,23 +85,23 @@
             android:max="1000"
             android:progress="250"
             android:progressDrawable="@drawable/circular_progressbar"
-            app:layout_constraintStart_toEndOf="@+id/pm10ProgressBar"
+            app:layout_constraintStart_toEndOf="@+id/pm10ProgressBarSampleDetails"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/pm25TitleLabel"
+            android:id="@+id/pm25TitleLabelSampleDetails"
             android:text="@string/pm25TitleLabel"
             style="@style/titleLabels"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="0dp"
-            app:layout_constraintEnd_toEndOf="@+id/pm25ProgressBar"
-            app:layout_constraintStart_toStartOf="@+id/pm25ProgressBar"
-            app:layout_constraintTop_toBottomOf="@+id/pm25ProgressBar"
+            app:layout_constraintEnd_toEndOf="@+id/pm25ProgressBarSampleDetails"
+            app:layout_constraintStart_toStartOf="@+id/pm25ProgressBarSampleDetails"
+            app:layout_constraintTop_toBottomOf="@+id/pm25ProgressBarSampleDetails"
             tools:text="PM25" />
 
         <TextView
-            android:id="@+id/pm25Value"
+            android:id="@+id/pm25ValueSampleDetails"
             android:text="250"
             style="@style/measureValues"
             android:layout_width="wrap_content"
@@ -101,14 +109,14 @@
             android:layout_marginBottom="0dp"
             android:layout_marginEnd="0dp"
             android:layout_marginTop="0dp"
-            app:layout_constraintBottom_toTopOf="@+id/pm25TitleLabel"
-            app:layout_constraintEnd_toEndOf="@+id/pm25ProgressBar"
-            app:layout_constraintStart_toStartOf="@+id/pm25ProgressBar"
-            app:layout_constraintTop_toTopOf="@+id/pm25ProgressBar"
+            app:layout_constraintBottom_toTopOf="@+id/pm25TitleLabelSampleDetails"
+            app:layout_constraintEnd_toEndOf="@+id/pm25ProgressBarSampleDetails"
+            app:layout_constraintStart_toStartOf="@+id/pm25ProgressBarSampleDetails"
+            app:layout_constraintTop_toTopOf="@+id/pm25ProgressBarSampleDetails"
             tools:text="250" />
 
         <TextView
-            android:id="@+id/measureUnitLabel2"
+            android:id="@+id/measureUnitLabel2SampleDetails"
             style="@style/titleLabels"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -116,12 +124,12 @@
             android:layout_marginTop="0dp"
             android:text="@string/measureUnit"
             android:textSize="@dimen/measureUnitSize"
-            app:layout_constraintEnd_toEndOf="@+id/pm25Value"
-            app:layout_constraintStart_toStartOf="@+id/pm25Value"
-            app:layout_constraintTop_toBottomOf="@+id/pm25Value" />
+            app:layout_constraintEnd_toEndOf="@+id/pm25ValueSampleDetails"
+            app:layout_constraintStart_toStartOf="@+id/pm25ValueSampleDetails"
+            app:layout_constraintTop_toBottomOf="@+id/pm25ValueSampleDetails" />
 
         <ProgressBar
-            android:id="@+id/no2ProgressBar"
+            android:id="@+id/no2ProgressBarSampleDetails"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="@dimen/progressBarSize"
             android:layout_height="@dimen/progressBarSize"
@@ -130,23 +138,23 @@
             android:max="1000"
             android:progress="850"
             android:progressDrawable="@drawable/circular_progressbar"
-            app:layout_constraintStart_toEndOf="@+id/pm25ProgressBar"
+            app:layout_constraintStart_toEndOf="@+id/pm25ProgressBarSampleDetails"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/no2TitleLabel"
+            android:id="@+id/no2TitleLabelSampleDetails"
             android:text="@string/no2TitleLabel"
             style="@style/titleLabels"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="0dp"
-            app:layout_constraintEnd_toEndOf="@+id/no2ProgressBar"
-            app:layout_constraintStart_toStartOf="@+id/no2ProgressBar"
-            app:layout_constraintTop_toBottomOf="@+id/no2ProgressBar"
-            tools:text="PM25" />
+            app:layout_constraintEnd_toEndOf="@+id/no2ProgressBarSampleDetails"
+            app:layout_constraintStart_toStartOf="@+id/no2ProgressBarSampleDetails"
+            app:layout_constraintTop_toBottomOf="@+id/no2ProgressBarSampleDetails"
+            tools:text="PM1" />
 
         <TextView
-            android:id="@+id/no2Value"
+            android:id="@+id/no2ValueSampleDetails"
             style="@style/measureValues"
             android:text="1000"
             android:layout_width="wrap_content"
@@ -154,14 +162,14 @@
             android:layout_marginBottom="0dp"
             android:layout_marginEnd="0dp"
             android:layout_marginTop="0dp"
-            app:layout_constraintBottom_toTopOf="@+id/no2TitleLabel"
-            app:layout_constraintEnd_toEndOf="@+id/no2ProgressBar"
-            app:layout_constraintStart_toStartOf="@+id/no2ProgressBar"
-            app:layout_constraintTop_toTopOf="@+id/no2ProgressBar"
+            app:layout_constraintBottom_toTopOf="@+id/no2TitleLabelSampleDetails"
+            app:layout_constraintEnd_toEndOf="@+id/no2ProgressBarSampleDetails"
+            app:layout_constraintStart_toStartOf="@+id/no2ProgressBarSampleDetails"
+            app:layout_constraintTop_toTopOf="@+id/no2ProgressBarSampleDetails"
             tools:text="1000" />
 
         <TextView
-            android:id="@+id/measureUnitLabel3"
+            android:id="@+id/measureUnitLabel3SampleDetails"
             style="@style/titleLabels"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -169,26 +177,26 @@
             android:layout_marginTop="0dp"
             android:text="@string/measureUnit"
             android:textSize="@dimen/measureUnitSize"
-            app:layout_constraintEnd_toEndOf="@+id/no2Value"
-            app:layout_constraintStart_toStartOf="@+id/no2Value"
-            app:layout_constraintTop_toBottomOf="@+id/no2Value" />
+            app:layout_constraintEnd_toEndOf="@+id/no2ValueSampleDetails"
+            app:layout_constraintStart_toStartOf="@+id/no2ValueSampleDetails"
+            app:layout_constraintTop_toBottomOf="@+id/no2ValueSampleDetails" />
 
 
 
         <ImageView
-            android:id="@+id/resultEmoji"
+            android:id="@+id/resultEmojiSampleDetails"
             android:layout_width="@dimen/resultEmojiSize"
             android:layout_height="@dimen/resultEmojiSize"
             android:layout_marginEnd="0dp"
             android:layout_marginStart="0dp"
             android:layout_marginTop="0dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/no2ProgressBar"
-            app:layout_constraintTop_toTopOf="@+id/no2ProgressBar"
+            app:layout_constraintStart_toEndOf="@+id/no2ProgressBarSampleDetails"
+            app:layout_constraintTop_toTopOf="@+id/no2ProgressBarSampleDetails"
             app:srcCompat="@drawable/ic_neutral_icon_24px" />
 
         <TextView
-            android:id="@+id/resultVerbose"
+            android:id="@+id/resultVerboseSampleDetails"
             android:text="@string/neutralEmojiLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -196,9 +204,9 @@
             android:layout_marginStart="0dp"
             android:layout_marginTop="0dp"
             style="@style/titleLabels"
-            app:layout_constraintEnd_toEndOf="@+id/resultEmoji"
-            app:layout_constraintStart_toStartOf="@+id/resultEmoji"
-            app:layout_constraintTop_toBottomOf="@+id/resultEmoji"
+            app:layout_constraintEnd_toEndOf="@+id/resultEmojiSampleDetails"
+            app:layout_constraintStart_toStartOf="@+id/resultEmojiSampleDetails"
+            app:layout_constraintTop_toBottomOf="@+id/resultEmojiSampleDetails"
             tools:text="AVERAGE" />
 
 
@@ -209,7 +217,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/pm10TitleLabel"
+            app:layout_constraintTop_toBottomOf="@+id/pm10TitleLabelSampleDetails"
             app:srcCompat="@drawable/ic_location_on_grey_24px" />
 
         <TextView
