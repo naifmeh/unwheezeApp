@@ -153,6 +153,7 @@ public class MainActivity extends AppCompatActivity
     private SQLiteDatabase mDb;
 
     private String mAirDataIdClicked;
+    private boolean hasLoaderFinishedOnce = false;
 
     private final String FONT_PATH = "fonts/Kollektif-Bold.ttf";
 
@@ -527,7 +528,7 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings({"ResourceType"})
     public void onMapReady(GoogleMap googleMap) {
         mainMap = googleMap;
-        mHeatMapList = readItems(); //TODO: Do this only when loader has finished
+       /* mHeatMapList = readItems(); //TODO: Do this only when loader has finished
 
         if(!mHeatMapList.isEmpty()) {
             mProvider = new HeatmapTileProvider.Builder()
@@ -538,9 +539,10 @@ public class MainActivity extends AppCompatActivity
         } else {
             Toast.makeText(this,"Couldn't load data ",Toast.LENGTH_LONG)
                     .show();
-        }
+        }*/
 
         mainMap.setMyLocationEnabled(true);
+
         if(mSharedPrefs != null && mSharedPrefs.contains(getString(R.string.shared_prefs_file_current_coarse_latitude))) {
             Double longitude = Double.longBitsToDouble(mSharedPrefs.getLong(getString(R.string.shared_prefs_file_current_coarse_longitude),0));
             Double latitude = Double.longBitsToDouble(mSharedPrefs.getLong(getString(R.string.shared_prefs_file_current_coarse_latitude),0));
@@ -598,6 +600,27 @@ public class MainActivity extends AppCompatActivity
         return markerOptions;
     }
 
+    private void loadMapData() {
+        mHeatMapList = readItems();
+        if(!hasLoaderFinishedOnce && mainMap != null) {
+            if(!mHeatMapList.isEmpty()) {
+                mProvider = new HeatmapTileProvider.Builder()
+                        .weightedData(mHeatMapList)
+                        .build();
+
+                mOverlay = mainMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
+                hasLoaderFinishedOnce = true;
+            } else {
+                Toast.makeText(this,"Couldn't load data ",Toast.LENGTH_LONG)
+                        .show();
+            }
+        }
+        else {
+            mProvider.setWeightedData(mHeatMapList);
+            mOverlay.clearTileCache();
+        }
+    }
+
    private ArrayList<WeightedLatLng> readItems() { //PROBLEME ICI
         //TODO filter by city
        AirDataDbHelper mDbHelper = new AirDataDbHelper(this);
@@ -634,7 +657,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
-        //onLoaderFinished();
+        loadMapData();
     }
 
     @Override
@@ -807,7 +830,8 @@ public class MainActivity extends AppCompatActivity
                 if (location.length > 1) {
                     LatLng latlng = new LatLng(Double.parseDouble(location[0]), Double.parseDouble(location[1]));
                     mHeatMapList.add(new WeightedLatLng(latlng, AirDataUtils.computeAQI(airData)));
-                    mainMap.addMarker(customizeMarker(airData));
+                    Marker marker = mainMap.addMarker(customizeMarker(airData));
+                    marker.setTag(airData.getId());
                 }
 
                 mProvider.setWeightedData(mHeatMapList);

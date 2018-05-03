@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -30,8 +32,10 @@ import com.unwheeze.unwheezeapp.network.AirDataRequestSingleton;
 import com.unwheeze.unwheezeapp.network.RequestsScheme;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class SplashActivity extends AppCompatActivity {
     //TODO: Load in AsyncTask
@@ -60,24 +64,49 @@ public class SplashActivity extends AppCompatActivity {
             getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimary));
         }
 
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         mainBundle = new Bundle();
+        if(hasLocationPermissions()) {
+            SplashAsyncTask splashAsyncTask = new SplashAsyncTask(this);
+            splashAsyncTask.execute();
+        }
+        else
+            ActivityCompat.requestPermissions(SplashActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
 
 
-       SplashAsyncTask splashAsyncTask = new SplashAsyncTask(this);
-       splashAsyncTask.execute();
 
+    }
 
+    private void startAsynck() {
+        SplashAsyncTask splashAsyncTask = new SplashAsyncTask(this);
+        splashAsyncTask.execute();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        Map<String, Integer> permissionMap = new HashMap<>();
+        int i = 0;
+        for(String permission : permissions) {
+            permissionMap.put(permission,grantResults[i++]);
+        }
+
+        if((permissionMap.get(Manifest.permission.ACCESS_FINE_LOCATION) != 0)) {
+            finish();
+        } else {
+            startAsynck();
+        }
+
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @SuppressWarnings({"ResourceType"})
     private void saveLastKnownLocation() {
         FusedLocationProviderClient mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        if(hasLocationPermissions()) {
             Log.d(TAG,"Location enabled, proceeding...");
             mFusedLocationClient.getLastLocation().addOnSuccessListener(this, (location) -> {
                 if(location != null) {
@@ -116,7 +145,7 @@ public class SplashActivity extends AppCompatActivity {
                 }
 
             });
-        }
+
 
     }
 
@@ -188,7 +217,9 @@ public class SplashActivity extends AppCompatActivity {
 
             if(hasGoogleApi) {
                 Log.d(TAG,"Getting last known location...");
+
                 saveLastKnownLocation();
+
             }
             Log.d(TAG,"Done asynctask");
             queue.add(apiKeyRequest);
