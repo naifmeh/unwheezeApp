@@ -19,7 +19,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <android.support.v7.widget.Toolbar
-            android:id="@+id/AirDetailsToolbar"
+            android:id="@+id/airDetailsToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:layout_marginEnd="0dp"
@@ -33,19 +33,65 @@
             app:layout_constraintTop_toTopOf="parent"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textColor="@color/floralWhite"
+                android:text="@string/airDetailsActivityTitle"
+                android:layout_marginLeft="16dp"
+                android:fontFamily="sans-serif-medium"
+                />
+
 
         </android.support.v7.widget.Toolbar>
     </android.support.design.widget.AppBarLayout>
 
+    <ImageView
+        android:id="@+id/accessTimeIconAirActivity"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="8dp"
+        android:src="@drawable/ic_access_time_green_24px"
+        app:layout_constraintStart_toStartOf="@+id/airDetailsLocIcon"
+        app:layout_constraintTop_toBottomOf="@+id/airDetailsAppBarLayout" />
+
+    <View
+        android:id="@+id/thirdSeparator"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="8dp"
+        android:alpha="0.5"
+        android:background="@android:color/darker_gray"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/accessTimeIconAirActivity" />
+
+    <TextView
+        android:id="@+id/airDetailsTimeSubmitted"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:fontFamily="sans-serif-light"
+        android:textColor="@color/titleLabelColorDark"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/accessTimeIconAirActivity"
+        app:layout_constraintStart_toEndOf="@+id/accessTimeIconAirActivity"
+        app:layout_constraintTop_toTopOf="@+id/accessTimeIconAirActivity"
+        android:text="18 avril 2018 - 23:58" />
+
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/airDetailsChart"
         android:layout_width="match_parent"
-        android:layout_height="275dp"
-        android:layout_marginTop="0dp"
+        android:layout_height="400dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/airDetailsAppBarLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/firstSeparator" />
 
     <ImageView
         android:id="@+id/airDetailsLocIcon"
@@ -55,7 +101,7 @@
         android:layout_marginTop="8dp"
         android:src="@drawable/ic_location_on_green_24px"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/airDetailsChart" />
+        app:layout_constraintTop_toBottomOf="@+id/thirdSeparator" />
 
     <TextView
         android:id="@+id/airDetailsLocationText"
@@ -64,35 +110,47 @@
         android:layout_marginBottom="8dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
-        android:fontFamily="sans-serif-medium"
-        android:textSize="18sp"
+        android:fontFamily="sans-serif-light"
         android:textColor="@color/titleLabelColorDark"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="@+id/airDetailsLocIcon"
         app:layout_constraintStart_toEndOf="@+id/airDetailsLocIcon"
         app:layout_constraintTop_toTopOf="@+id/airDetailsLocIcon"
-        tools:text="35.2565,5.7779" />
+        android:text="35.2565,5.7779" />
 
     <View
         android:id="@+id/firstSeparator"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="8dp"
-        android:alpha="0.8"
         android:layout_marginEnd="0dp"
         android:layout_marginStart="0dp"
-        android:background="@android:color/black"
+        android:layout_marginTop="8dp"
+        android:alpha="0.5"
+        android:background="@android:color/darker_gray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/airDetailsLocIcon" />
+    <View
+        android:id="@+id/SecondSeparator"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginEnd="0dp"
+        android:alpha="0.5"
+        android:background="@android:color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/airDetailsChart" />
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/insideConstraint"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/firstSeparator">
+        app:layout_constraintTop_toBottomOf="@+id/airDetailsChart">
 
 
         <ProgressBar
@@ -283,7 +341,6 @@
 
 
     </android.support.constraint.ConstraintLayout>
-
 
 
 </android.support.constraint.ConstraintLayout>

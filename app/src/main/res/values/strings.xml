@@ -33,6 +33,10 @@
     <string name="neutralEmojiLabel">AVERAGE</string>
     <string name="sadEmojiLabel">BAD</string>
 
+    <string name="titleSampleDetails">MEASURE DETAILS</string>
+
+    <string name="airDetailsActivityTitle">Details</string>
+
     <string name="toolbarSearch">Search</string>
     <string name="toolbarProfile">Profile</string>
     <string name="toolbarRefresh">Refresh</string>

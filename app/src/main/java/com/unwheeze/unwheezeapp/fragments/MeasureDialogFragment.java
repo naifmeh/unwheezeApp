@@ -90,7 +90,7 @@ public class MeasureDialogFragment extends BottomSheetDialogFragment {
             mListener.requestNewMeasure();
         });
 
-        //TODO: Modify this and apply for every other progressBar
+
         mPm1ProgressBar = (ProgressBar) contentView.findViewById(R.id.no2ProgressBar);
         mPm1TextView = (TextView) contentView.findViewById(R.id.no2Value);
         float pm1Value = mListener.listenPm1();

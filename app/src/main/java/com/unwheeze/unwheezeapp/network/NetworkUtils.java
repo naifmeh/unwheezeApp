@@ -65,7 +65,6 @@ public class NetworkUtils {
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET,uri.toString(),null,(response)-> {
             jsonArray.addAll(gson.fromJson(response.toString(), JsonArray.class));
             listener.onResponseResult(jsonArray);
-            Log.d(TAG,jsonArray.toString());
         },(error) -> {
             //TODO: Handle error
         }){

@@ -59,6 +59,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionButton;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.LocationServices;
@@ -81,12 +82,14 @@ import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 import com.unwheeze.unwheezeapp.R;
 import com.unwheeze.unwheezeapp.beans.AirData;
+import com.unwheeze.unwheezeapp.beans.NearestBean;
 import com.unwheeze.unwheezeapp.bluetooth.BluetoothActions;
 import com.unwheeze.unwheezeapp.bluetooth.MyBluetoothGattCallback;
 import com.unwheeze.unwheezeapp.bluetooth.RequestDeviceAirDataTask;
 import com.unwheeze.unwheezeapp.database.AirDataContract;
 import com.unwheeze.unwheezeapp.database.AirDataDbHelper;
 import com.unwheeze.unwheezeapp.fragments.MeasureDialogFragment;
+import com.unwheeze.unwheezeapp.fragments.SampleDialogFragment;
 import com.unwheeze.unwheezeapp.network.AirDataLoader;
 import com.unwheeze.unwheezeapp.network.NetworkUtils;
 import com.unwheeze.unwheezeapp.services.WebsocketService;
@@ -103,7 +106,7 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity
         implements OnMapReadyCallback, LoaderManager.LoaderCallbacks<String>, BluetoothActions,
-        MeasureDialogFragment.MeasureDialogFragmentCallback {
+        MeasureDialogFragment.MeasureDialogFragmentCallback, SampleDialogFragment.SampleDialogListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -142,14 +145,14 @@ public class MainActivity extends AppCompatActivity
     private char mMeasureTrigger = 'B';
     private int mOverallAirOpinion = AirDataUtils.AIR_QUALITY_NEUTRAL;
 
-    private Handler mHandler;
-    private WebsocketService mWsService; //TODO: Handle service here
+    private Handler mHandler; //TODO: Handle service here
     private BroadcastReceiver mBroadcastReceiver;
     private LocalBroadcastManager mLocalBroadcastManager;
-    private boolean isBound;
 
     private AirDataDbHelper mDbHelper = new AirDataDbHelper(this);
     private SQLiteDatabase mDb;
+
+    private String mAirDataIdClicked;
 
     private final String FONT_PATH = "fonts/Kollektif-Bold.ttf";
 
@@ -204,16 +207,15 @@ public class MainActivity extends AppCompatActivity
         //---- Setting up location
 
         //---------- Bottom Sheet
-
         bottomSheetDialogFragment = MeasureDialogFragment.newInstance();
 
-
-
         //----- Starting Loader
-
         getSupportLoaderManager().initLoader(LOADER_AIRDATA_TAG,null,this).forceLoad();
 
         //Starting location manager
+        GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API).build();
+        mGoogleApiClient.connect();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         //------ Bluetooth Handling
 
@@ -254,7 +256,6 @@ public class MainActivity extends AppCompatActivity
 
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(this);
 
-
     }
 
     @Override
@@ -289,6 +290,8 @@ public class MainActivity extends AppCompatActivity
 
 
     }
+
+
     //-------- Verification
 
     private boolean hasBtFeature() {
@@ -524,7 +527,7 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings({"ResourceType"})
     public void onMapReady(GoogleMap googleMap) {
         mainMap = googleMap;
-        mHeatMapList = readItems();
+        mHeatMapList = readItems(); //TODO: Do this only when loader has finished
 
         if(!mHeatMapList.isEmpty()) {
             mProvider = new HeatmapTileProvider.Builder()
@@ -537,7 +540,7 @@ public class MainActivity extends AppCompatActivity
                     .show();
         }
 
-
+        mainMap.setMyLocationEnabled(true);
         if(mSharedPrefs != null && mSharedPrefs.contains(getString(R.string.shared_prefs_file_current_coarse_latitude))) {
             Double longitude = Double.longBitsToDouble(mSharedPrefs.getLong(getString(R.string.shared_prefs_file_current_coarse_longitude),0));
             Double latitude = Double.longBitsToDouble(mSharedPrefs.getLong(getString(R.string.shared_prefs_file_current_coarse_latitude),0));
@@ -550,16 +553,20 @@ public class MainActivity extends AppCompatActivity
                 mainMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 12));
         }
 
+        final SampleDialogFragment bottomSheetDetailFragment = SampleDialogFragment.newInstance();
         mainMap.setOnMapClickListener((latlng)->{
             Log.d(TAG,"Point cliqué : "+latlng.latitude+" , "+latlng.longitude);
 
             NetworkUtils networkUtils = new NetworkUtils(this);
-            networkUtils.getNearest(latlng.latitude,latlng.longitude,null,(jsonArray)->{
+            networkUtils.getNearest(latlng.latitude,latlng.longitude,"1",(jsonArray)->{
                 Log.d(TAG,"GET NEAREST JSON ARRAY "+ jsonArray.toString());
-                if(jsonArray.size() == 0) return; //TODO: Display warning message
-                /*Intent intent = new Intent(this,AirDetailsActivity.class);
-                intent.putExtra(AirDetailsActivity.JSONARRAY_DATA_INTENT_KEY,jsonArray.toString());
-                startActivity(intent);*/
+                if(jsonArray.size() == 0) return;
+                JsonElement firstElement = jsonArray.get(0);
+                NearestBean nearestBean = (new Gson()).fromJson(firstElement.toString(),NearestBean.class);
+                AirData airData = nearestBean.getDoc();
+                mAirDataIdClicked = airData.getId();
+
+                bottomSheetDetailFragment.show(getSupportFragmentManager(),bottomSheetDetailFragment.getTag());
             });
         });
 
@@ -567,8 +574,9 @@ public class MainActivity extends AppCompatActivity
             marker.setAlpha(1.f);
             marker.setZIndex(1.f);
             marker.showInfoWindow();
+            mAirDataIdClicked = (String) marker.getTag();
 
-
+            bottomSheetDetailFragment.show(getSupportFragmentManager(),bottomSheetDetailFragment.getTag());
             return true;
         });
 
@@ -581,7 +589,7 @@ public class MainActivity extends AppCompatActivity
 
         /* Marker options*/
         MarkerOptions markerOptions = new MarkerOptions().position(latlng);
-        markerOptions.title("PM1: "+airData.getPm1()+"- PM10: "+airData.getPm10()+"- PM25: "+airData.getPm10());
+        markerOptions.title("PM1: "+airData.getPm1()+"- PM10: "+airData.getPm10()+"- PM25: "+airData.getPm25());
         markerOptions.icon(BitmapDescriptorFactory
                 .defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
         markerOptions.alpha(0.8f);
@@ -600,6 +608,7 @@ public class MainActivity extends AppCompatActivity
        List<AirData> airDataList = AirDataUtils.getAirDataList(db);
        for(AirData airData: airDataList) {
            String location = airData.getLocation();
+           Log.d(TAG,location);
            if(location == null) continue;
 
            String[] position = location.split(",");
@@ -657,7 +666,7 @@ public class MainActivity extends AppCompatActivity
                 if(mPm1 == 0 && mPm10 == 0 && mPm25 == 0) return;
 
                 UUID uuid = UUID.randomUUID();
-                AirData airData = new AirData(uuid.toString(),mPm25,mPm10,mPm1);
+                AirData airData = new AirData(uuid.toString(),null,mPm25,mPm10,mPm1,null,null);
                 mOverallAirOpinion = AirDataUtils.computeAirQuality(airData);
 
                 setUpRequestDeviceTask(airData);
@@ -682,8 +691,10 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onSuccess(Location location) {
                 Log.d(TAG,"Getting last location Success in setAirDataForUpload");
-                modifiedAirData.setLocation(String.valueOf(location.getLatitude())+","+String.valueOf(location.getLongitude()));
+                if(location == null) modifiedAirData.setLocation(null);
+                else modifiedAirData.setLocation(String.valueOf(location.getLatitude())+","+String.valueOf(location.getLongitude()));
             }
+
 
         });
         UUID uuid = UUID.randomUUID();
@@ -696,8 +707,12 @@ public class MainActivity extends AppCompatActivity
         AirData airDataToAdd = null;
         RequestDeviceAirDataTask requestDeviceAirDataTask = new RequestDeviceAirDataTask(this);
         airDataToAdd = setAirDataForUpload(airData);
-        Log.d(TAG,"Airdata to add : "+new Gson().toJson(airDataToAdd));
-        requestDeviceAirDataTask.execute(airDataToAdd);
+        if(airDataToAdd.getLocation() != null) {
+            Log.d(TAG, "Airdata to add : " + new Gson().toJson(airDataToAdd));
+            requestDeviceAirDataTask.execute(airDataToAdd);
+        } else {
+            Log.e(TAG,"Null location");
+        }
     }
 
 
@@ -769,7 +784,12 @@ public class MainActivity extends AppCompatActivity
         isBottomSheetDisplayed = value;
     }
 
+  /* Sample Dialog fragment listener */
 
+    @Override
+    public String getAirDataId() {
+        return mAirDataIdClicked;
+    }
 
     public class WebSocketBroadcastReceiver extends BroadcastReceiver {
         @Override
