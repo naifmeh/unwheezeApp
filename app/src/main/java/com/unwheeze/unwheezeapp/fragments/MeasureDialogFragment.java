@@ -40,6 +40,7 @@ public class MeasureDialogFragment extends BottomSheetDialogFragment {
 
     private TextView mFinalOpinion;
     private ImageView mSmiley;
+    private ImageView mQuitBtn;
 
     private Button mMeasureAgainBtn;
 
@@ -84,10 +85,12 @@ public class MeasureDialogFragment extends BottomSheetDialogFragment {
 
         mFinalOpinion = (TextView) contentView.findViewById(R.id.resultVerbose);
         mSmiley = (ImageView) contentView.findViewById(R.id.resultEmoji);
+        mQuitBtn = (ImageView) contentView.findViewById(R.id.measureDetailsQuit);
+        mQuitBtn.setOnClickListener((view)->dismiss());
 
         mMeasureAgainBtn = (Button) contentView.findViewById(R.id.refreshButton);
         mMeasureAgainBtn.setOnClickListener((view) -> {
-            mListener.requestNewMeasure();
+            mListener.requestNewMeasure(MeasureDialogFragment.this);
         });
 
 
@@ -184,7 +187,7 @@ public class MeasureDialogFragment extends BottomSheetDialogFragment {
         float listenPm25();
         float listenPm10();
         int getEmojiFace();
-        void requestNewMeasure();
+        void requestNewMeasure(MeasureDialogFragment fragment);
         void isFragmentDisplayed(boolean value);
     }
 }

@@ -15,9 +15,16 @@
     <dimen name="defaultAlphaFab">1</dimen>
     <dimen name="fab_margin">16dp</dimen>
 
-    <dimen name="errorPopUpWidth">300dp</dimen>
-    <dimen name="errorPopUpHeight">150dp</dimen>
+    <dimen name="errorPopUpWidth">350dp</dimen>
+    <dimen name="errorPopUpHeight">155dp</dimen>
     <dimen name="errorTitleSize">18sp</dimen>
     <dimen name="errorOkBtnHeight">25dp</dimen>
     <dimen name="errorOkBtnWidth">70dp</dimen>
+
+    <dimen name="warningPopUpWidth">350dp</dimen>
+    <dimen name="warningPopUpHeight">155dp</dimen>
+    <dimen name="warningTitleSize">18sp</dimen>
+    <dimen name="warningOkBtnHeight">25dp</dimen>
+    <dimen name="warningOkBtnWidth">70dp</dimen>
+
 </resources>

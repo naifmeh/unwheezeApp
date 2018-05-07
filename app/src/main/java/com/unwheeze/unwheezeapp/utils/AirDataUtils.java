@@ -238,7 +238,7 @@ public class AirDataUtils {
     }
 
     public static String deleteTableSql(){
-        return "DELETE FROM "+ AirDataContract.AirDataEntry.TABLE_NAME+"; VACUUM;";
+        return "DELETE FROM "+ AirDataContract.AirDataEntry.TABLE_NAME;
     }
 
 }

@@ -3,16 +3,16 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="@dimen/errorPopUpWidth"
-    android:layout_height="@dimen/errorPopUpHeight">
+    android:layout_width="@dimen/warningPopUpWidth"
+    android:layout_height="@dimen/warningPopUpHeight">
 
 
     <View
-        android:id="@+id/view"
+        android:id="@+id/viewWarning"
         android:layout_width="match_parent"
         android:layout_height="110dp"
         android:layout_marginTop="0dp"
-        android:background="@color/errorRed"
+        android:background="@color/warningYellow"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -24,13 +24,13 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_marginBottom="16dp"
-        android:layout_marginStart="212dp"
-        app:layout_constraintBottom_toBottomOf="@+id/lowerView"
+        android:layout_marginStart="248dp"
+        app:layout_constraintBottom_toBottomOf="@+id/lowerViewWarning"
         app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@drawable/error_quit_icon" />
+        app:srcCompat="@drawable/ic_warning_yellow_24px" />
 
     <View
-        android:id="@+id/lowerView"
+        android:id="@+id/lowerViewWarning"
         android:layout_width="match_parent"
         android:layout_height="45dp"
         android:layout_marginBottom="0dp"
@@ -39,22 +39,22 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view"
+        app:layout_constraintTop_toBottomOf="@+id/viewWarning"
         app:layout_constraintVertical_bias="0.0" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:id="@+id/errorPopUpTitle"
+        android:id="@+id/warningPopUpTitle"
         android:fontFamily="sans-serif-medium"
-        android:text="@string/errorTitlePopup"
+        android:text="@string/warningTitlePopup"
         android:textColor="@color/titleLabelColor"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/errorPopUpMessage"
+        android:id="@+id/warningPopUpMessage"
         android:textColor="@color/floralWhite"
         android:fontFamily="sans-serif-light"
         android:layout_width="match_parent"
@@ -66,23 +66,23 @@
         android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/view"
-        app:layout_constraintTop_toBottomOf="@+id/errorPopUpTitle"
-        tools:text="Some very special error message that will make hate. " />
+        app:layout_constraintStart_toStartOf="@+id/viewWarning"
+        app:layout_constraintTop_toBottomOf="@+id/warningPopUpTitle"
+        tools:text="Some very special warning message that will make hate. " />
 
     <Button
-        android:id="@+id/errorOkButton"
-        android:layout_width="@dimen/errorOkBtnWidth"
+        android:id="@+id/warningOkButton"
+        android:layout_width="@dimen/warningOkBtnWidth"
         android:layout_height="22dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginTop="8dp"
-        android:background="@color/errorRed"
-        android:text="OK"
+        android:background="@color/warningYellow"
+        android:text="@string/okBtn"
         android:textColor="@color/floralWhite"
-        app:layout_constraintBottom_toBottomOf="@+id/lowerView"
-        app:layout_constraintEnd_toEndOf="@+id/lowerView"
-        app:layout_constraintTop_toTopOf="@+id/lowerView" />
+        app:layout_constraintBottom_toBottomOf="@+id/lowerViewWarning"
+        app:layout_constraintEnd_toEndOf="@+id/lowerViewWarning"
+        app:layout_constraintTop_toTopOf="@+id/lowerViewWarning" />
 
 
 

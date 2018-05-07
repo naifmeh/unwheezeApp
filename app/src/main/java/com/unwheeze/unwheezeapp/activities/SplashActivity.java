@@ -5,12 +5,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -28,8 +32,13 @@ import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.unwheeze.unwheezeapp.R;
+import com.unwheeze.unwheezeapp.beans.AirData;
+import com.unwheeze.unwheezeapp.database.AirDataContract;
+import com.unwheeze.unwheezeapp.database.AirDataDbHelper;
 import com.unwheeze.unwheezeapp.network.AirDataRequestSingleton;
 import com.unwheeze.unwheezeapp.network.RequestsScheme;
+import com.unwheeze.unwheezeapp.ui.ErrorDialog;
+import com.unwheeze.unwheezeapp.utils.AirDataUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -40,6 +49,8 @@ import java.util.Map;
 public class SplashActivity extends AppCompatActivity {
     //TODO: Load in AsyncTask
     private static final String TAG = SplashActivity.class.getSimpleName();
+
+    private ErrorDialog mErrorDialog;
 
     private boolean hasBTE = true;
     private boolean hasGoogleApi = false;
@@ -96,7 +107,10 @@ public class SplashActivity extends AppCompatActivity {
         }
 
         if((permissionMap.get(Manifest.permission.ACCESS_FINE_LOCATION) != 0)) {
-            finish();
+            mErrorDialog = new ErrorDialog(this,getString(R.string.locationPemrmissionError),(view)->{
+                SplashActivity.this.finish();
+            });
+            mErrorDialog.show();
         } else {
             startAsynck();
         }
@@ -160,6 +174,11 @@ public class SplashActivity extends AppCompatActivity {
         startActivity(intentMain);
     }
 
+    @Override
+    protected void onDestroy() {
+        if(mErrorDialog != null) mErrorDialog.dismiss();
+        super.onDestroy();
+    }
 
     public class SplashAsyncTask extends AsyncTask<Void,Void,Integer> {
 
@@ -217,10 +236,19 @@ public class SplashActivity extends AppCompatActivity {
 
             if(hasGoogleApi) {
                 Log.d(TAG,"Getting last known location...");
-
                 saveLastKnownLocation();
 
             }
+
+
+           /*Emptying SQL table*/
+            AirDataDbHelper helper = new AirDataDbHelper(SplashActivity.this);
+            try(SQLiteDatabase db = helper.getWritableDatabase()) {
+                helper.onUpgrade(db,1,2);
+            } catch(SQLiteException e) {
+                e.printStackTrace();
+            }
+
             Log.d(TAG,"Done asynctask");
             queue.add(apiKeyRequest);
             //TODO: Remove thread.sleep
@@ -240,4 +268,5 @@ public class SplashActivity extends AppCompatActivity {
 
 
     }
+
 }

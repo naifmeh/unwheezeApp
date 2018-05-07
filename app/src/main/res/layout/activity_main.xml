@@ -127,11 +127,6 @@
         fab:menu_labels_textColor="@android:color/black"
         fab:menu_labels_cornerRadius="3dp"
         fab:menu_labels_ellipsize="none">
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fab_menu_search"
-            android:src="@drawable/ic_search_white_24px"
-            fab:fab_label="Itinerary"
-            style="@style/SubFabIcons"/>
         
         <com.github.clans.fab.FloatingActionButton
             style="@style/SubFabIcons"

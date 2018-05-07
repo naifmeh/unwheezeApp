@@ -13,6 +13,31 @@
         android:layout_height="match_parent"
         android:background="@color/floralBlue">
 
+        <ImageView
+            android:id="@+id/measureDetailsQuit"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_clear_white_24px" />
+
+        <TextView
+            android:id="@+id/measureDetailsTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif-thin"
+            android:text="@string/titleMeasureDetails"
+            android:textColor="@color/floralWhite"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/measureDetailsQuit"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/measureDetailsQuit"
+            app:layout_constraintTop_toTopOf="@+id/measureDetailsQuit" />
 
 
         <ProgressBar
@@ -21,12 +46,12 @@
             android:layout_width="@dimen/progressBarSize"
             android:layout_height="@dimen/progressBarSize"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:max="1000"
             android:progress="120"
             android:progressDrawable="@drawable/circular_progressbar"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/measureDetailsQuit" />
 
         <TextView
             android:id="@+id/pm10TitleLabel"
@@ -74,12 +99,12 @@
             android:layout_width="@dimen/progressBarSize"
             android:layout_height="@dimen/progressBarSize"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="0dp"
             android:max="1000"
             android:progress="250"
             android:progressDrawable="@drawable/circular_progressbar"
             app:layout_constraintStart_toEndOf="@+id/pm10ProgressBar"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="@+id/pm10ProgressBar" />
 
         <TextView
             android:id="@+id/pm25TitleLabel"
@@ -127,12 +152,12 @@
             android:layout_width="@dimen/progressBarSize"
             android:layout_height="@dimen/progressBarSize"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="0dp"
             android:max="1000"
             android:progress="850"
             android:progressDrawable="@drawable/circular_progressbar"
             app:layout_constraintStart_toEndOf="@+id/pm25ProgressBar"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="@+id/pm25ProgressBar" />
 
         <TextView
             android:id="@+id/no2TitleLabel"

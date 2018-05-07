@@ -62,6 +62,10 @@ import com.github.clans.fab.FloatingActionButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.LocationAvailability;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -93,6 +97,8 @@ import com.unwheeze.unwheezeapp.fragments.SampleDialogFragment;
 import com.unwheeze.unwheezeapp.network.AirDataLoader;
 import com.unwheeze.unwheezeapp.network.NetworkUtils;
 import com.unwheeze.unwheezeapp.services.WebsocketService;
+import com.unwheeze.unwheezeapp.ui.ErrorDialog;
+import com.unwheeze.unwheezeapp.ui.WarningDialog;
 import com.unwheeze.unwheezeapp.utils.AirDataUtils;
 
 import org.json.JSONObject;
@@ -113,8 +119,9 @@ public class MainActivity extends AppCompatActivity
     private Toolbar mToolbar;
     private FloatingActionButton mConnectFab;
     private FloatingActionButton mMeasureFabButton;
-    private FloatingActionButton mSearchFab;
 
+    private ErrorDialog mErrorDialog;
+    private WarningDialog mWarningDialog;
     private BottomSheetDialogFragment bottomSheetDialogFragment;
     private boolean isBottomSheetDisplayed = false;
 
@@ -123,6 +130,7 @@ public class MainActivity extends AppCompatActivity
     private GoogleMap mainMap;
     private boolean isLocationApiPresent = true;
     private FusedLocationProviderClient mFusedLocationClient;
+    private LocationCallback mLocationCallback;
     private List<WeightedLatLng> mHeatMapList = new ArrayList<>();
     private HeatmapTileProvider mProvider;
     private TileOverlay mOverlay;
@@ -166,8 +174,9 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //------ Verifiying bundle
-         mDb = mDbHelper.getWritableDatabase();
+
+
+        mDb = mDbHelper.getWritableDatabase();
         if(savedInstanceState != null) {
             isLocationApiPresent = savedInstanceState.getBoolean(SplashActivity.GOOGLE_API_KEY);
         }
@@ -185,10 +194,10 @@ public class MainActivity extends AppCompatActivity
 
         Drawable burgerIc = ContextCompat.getDrawable(this,R.drawable.ic_view_headline_white_24px);
         mToolbar.setNavigationIcon(burgerIc);
+        mToolbar.setNavigationOnClickListener((view)->showWarningDialog(getString(R.string.warningNotImplemented)));
 
         mConnectFab = (FloatingActionButton) findViewById(R.id.fab_menu_btConnect);
         mMeasureFabButton = (FloatingActionButton) findViewById(R.id.fab_menu_measure);
-        mSearchFab = (FloatingActionButton) findViewById(R.id.fab_menu_search);
 
 
         //--- LOADING MAP
@@ -204,8 +213,6 @@ public class MainActivity extends AppCompatActivity
         //----- SharedPrefs
 
         mSharedPrefs = this.getSharedPreferences(getString(R.string.shared_prefs_file_key),this.MODE_PRIVATE);
-
-        //---- Setting up location
 
         //---------- Bottom Sheet
         bottomSheetDialogFragment = MeasureDialogFragment.newInstance();
@@ -236,19 +243,9 @@ public class MainActivity extends AppCompatActivity
 
 
         });
-        //TODO: Remove
+
         mMeasureFabButton.setOnClickListener((view)-> {
             writeCharacteristic('B');
-        });
-
-        mSearchFab.setOnClickListener((view)->{
-            NetworkUtils networkUtils = new NetworkUtils(this);
-            networkUtils.getAllAirDataElements((jsonArray)->{
-                Intent intent = new Intent(this,AirDetailsActivity.class);
-                intent.putExtra(AirDetailsActivity.JSONARRAY_DATA_INTENT_KEY,jsonArray.toString());
-                startActivity(intent);
-            });
-
         });
 
         //--------- Service start
@@ -265,7 +262,6 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -275,6 +271,12 @@ public class MainActivity extends AppCompatActivity
         } else if(requestCode == REQUEST_ENABLE_LOCATION) {
             Log.d(TAG,"Result code by Location");
         }
+    }
+
+    @Override
+    protected void onPause() {
+        stopLocationRequest();
+        super.onPause();
     }
 
     @Override
@@ -288,7 +290,7 @@ public class MainActivity extends AppCompatActivity
         IntentFilter filter = new IntentFilter();
         filter.addAction(getString(R.string.websocketDataReceivedIntent));
         mLocalBroadcastManager.registerReceiver(mBroadcastReceiver,filter);
-
+        setLocationUpdater();
 
     }
 
@@ -395,7 +397,8 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onScanFailed(int errorCode) {
-                Log.w(TAG,"Scan failed with error code "+errorCode);
+                mErrorDialog = new ErrorDialog(MainActivity.this,getString(R.string.scanFailedError));
+                mErrorDialog.show();
             }
         };
 
@@ -419,8 +422,10 @@ public class MainActivity extends AppCompatActivity
         if(mScanning && mBluetoothAdapter != null && mBluetoothAdapter.isEnabled() && mBluetoothLeScanner != null){
             Log.d(TAG,"Scan over");
             mBluetoothLeScanner.stopScan(mScanCallback);
-            if(mBtDevices.isEmpty())
-                Log.i(TAG,"BT list is empty"); //TODO : Handle no devices found
+            if(mBtDevices.isEmpty()) {
+                showErrorDialog(getString(R.string.scanFailedError));
+            }
+
 
         }
 
@@ -452,7 +457,7 @@ public class MainActivity extends AppCompatActivity
     private void writeCharacteristic(int value) {
         if(mBluetoothAdapter == null || mBtGatt == null) {
             Log.w(TAG,"BluetoothAdapter not init");
-            //TODO: Handle this case
+            showErrorDialog(getString(R.string.btNotInitError));
             return;
         }
         UUID uuid = UUID.fromString(getString(R.string.serviceBtUuid));
@@ -475,7 +480,7 @@ public class MainActivity extends AppCompatActivity
     private void subscribeCharacteristic(boolean enable) {
         if(mBluetoothAdapter == null || mBtGatt == null) {
             Log.w(TAG,"BluetoothAdapter not init");
-            //TODO: Handle this case
+            showErrorDialog(getString(R.string.btNotInitError));
             return;
         }
         UUID uuid = UUID.fromString(getString(R.string.serviceBtUuid));
@@ -502,6 +507,8 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+
+
     //---------------- Menu
 
     @Override
@@ -515,6 +522,10 @@ public class MainActivity extends AppCompatActivity
         switch(item.getItemId()) {
             case R.id.main_toolbar_refresh:
                 getSupportLoaderManager().restartLoader(LOADER_AIRDATA_TAG,null,this).forceLoad();
+                return true;
+
+            case R.id.main_toolbar_profile:
+                showWarningDialog(getString(R.string.warningNotImplemented));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -638,6 +649,7 @@ public class MainActivity extends AppCompatActivity
            LatLng latlng = new LatLng(Float.parseFloat(position[0]),Float.parseFloat(position[1]));
            list.add(new WeightedLatLng(latlng,airData.getPm25()));
            /* Setting markers */
+
            Marker marker = mainMap.addMarker(customizeMarker(airData));
            marker.setTag(airData.getId());
 
@@ -703,40 +715,79 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
-    private AirData setAirDataForUpload(AirData airdata) throws SecurityException{
-        AirData modifiedAirData = airdata;
-        if(!areLocationServicesEnabled(this)){
-            Log.i(TAG,"Location services disabled in setAirDataForUpload");
-            requestLocationEnable();
-            return airdata;
-        }
-        mFusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+
+    @SuppressWarnings({"MissingPermission"})
+    private void setLocationUpdater() {
+        LocationRequest locationRequest = new LocationRequest();
+        locationRequest.setInterval(1000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        mLocationCallback = new LocationCallback(){
             @Override
-            public void onSuccess(Location location) {
-                Log.d(TAG,"Getting last location Success in setAirDataForUpload");
-                if(location == null) modifiedAirData.setLocation(null);
-                else modifiedAirData.setLocation(String.valueOf(location.getLatitude())+","+String.valueOf(location.getLongitude()));
+            public void onLocationResult(LocationResult locationResult) {
             }
 
+            @Override
+            public void onLocationAvailability(LocationAvailability locationAvailability) {
+                super.onLocationAvailability(locationAvailability);
+            }
+        };
 
-        });
-        UUID uuid = UUID.randomUUID();
-        modifiedAirData.setId(uuid.toString());
-        Log.d(TAG,(new Gson()).toJson(modifiedAirData));
-        return modifiedAirData;
+        mFusedLocationClient.requestLocationUpdates(locationRequest,mLocationCallback,null);
+
+    }
+
+    private void stopLocationRequest() {
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 
     private void setUpRequestDeviceTask(AirData airData) {
         AirData airDataToAdd = null;
         RequestDeviceAirDataTask requestDeviceAirDataTask = new RequestDeviceAirDataTask(this);
-        airDataToAdd = setAirDataForUpload(airData);
-        if(airDataToAdd.getLocation() != null) {
+        setAirDataForUpload(airData);
+       /*if(airDataToAdd.getLocation() != null) {
             Log.d(TAG, "Airdata to add : " + new Gson().toJson(airDataToAdd));
             requestDeviceAirDataTask.execute(airDataToAdd);
         } else {
-            Log.e(TAG,"Null location");
-        }
+            showErrorDialog(getString(R.string.locationNullError));
+        }*/
     }
+
+    private void setAirDataForUpload(AirData airdata) throws SecurityException{
+        AirData modifiedAirData = airdata;
+        if(!areLocationServicesEnabled(this)){
+            Log.i(TAG,"Location services disabled in setAirDataForUpload");
+            requestLocationEnable();
+            return;
+        }
+        mFusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                Log.d(TAG,"Getting last location Success in setAirDataForUpload");
+                if(location == null) {
+                    modifiedAirData.setLocation(null);
+                    if(mHandler != null) {
+                        mHandler.post(()->showErrorDialog(getString(R.string.locationNullError)));
+                    }
+                    return;
+                }
+                else {
+                    modifiedAirData.setLocation(String.valueOf(location.getLatitude())+","+String.valueOf(location.getLongitude()));
+                    UUID uuid = UUID.randomUUID();
+                    modifiedAirData.setId(uuid.toString());
+                    RequestDeviceAirDataTask requestDeviceAirDataTask = new RequestDeviceAirDataTask(MainActivity.this);
+                    requestDeviceAirDataTask.execute(modifiedAirData);
+                }
+
+            }
+
+
+        });
+        Log.d(TAG,(new Gson()).toJson(modifiedAirData));
+        return;
+    }
+
+
 
 
     @Override
@@ -761,6 +812,18 @@ public class MainActivity extends AppCompatActivity
         }
     }
     //------------------------------------
+
+    private void showErrorDialog(String message) {
+        if(mErrorDialog != null && mErrorDialog.isShowing()) mErrorDialog.dismiss();
+        mErrorDialog = new ErrorDialog(MainActivity.this,message);
+        mErrorDialog.show();
+    }
+
+    private void showWarningDialog(String message) {
+        if(mWarningDialog != null && mWarningDialog.isShowing()) mWarningDialog.dismiss();
+        mWarningDialog = new WarningDialog(MainActivity.this,message);
+        mWarningDialog.show();
+    }
 
     @Override
     protected void onStop() {
@@ -798,7 +861,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void requestNewMeasure() {
+    public void requestNewMeasure(MeasureDialogFragment fragment) {
+        fragment.dismiss();
         writeCharacteristic(mMeasureTrigger);
     }
 

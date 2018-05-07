@@ -22,6 +22,8 @@
 
     <color name="errorRed">#D45659</color>
     <color name="darkerErrorRed">#F35E64</color>
+    <color name="warningYellow">#FCC000</color>
+    <color name="darkerWarningYellow">#B5A00F</color>
 
     <color name="paleGreen">#6BF3AD</color>
 

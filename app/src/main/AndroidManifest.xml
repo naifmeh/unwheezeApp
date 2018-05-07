@@ -20,7 +20,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         <activity android:name=".activities.SplashActivity"
-            android:noHistory="true">
+            android:noHistory="true"
+            android:screenOrientation="portrait">
             <meta-data
                 android:name="com.google.android.gms.version"
                 android:value="@integer/google_play_services_version"
@@ -47,14 +48,16 @@
         <activity
             android:name=".activities.MainActivity"
             android:label="MainActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:screenOrientation="portrait"/>
 
         <service
             android:name=".services.WebsocketService"
             android:description="@string/WsServiceDescription"
             android:exported="false" />
 
-        <activity android:name=".activities.AirDetailsActivity"></activity>
+        <activity android:name=".activities.AirDetailsActivity"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

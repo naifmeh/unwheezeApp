@@ -34,6 +34,7 @@
     <string name="sadEmojiLabel">BAD</string>
 
     <string name="titleSampleDetails">MEASURE DETAILS</string>
+    <string name="titleMeasureDetails">INSTANT MEASURE</string>
 
     <string name="airDetailsActivityTitle">Details</string>
 
@@ -43,7 +44,14 @@
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_splash">SplashActivity</string>
 
-    <string name="errorTitlePopup">Error</string>
+    <string name="errorTitlePopup">Oh snap!</string>
+    <string name="scanFailedError">The scan failed. Make sure your device is turned on and try again.</string>
+    <string name="btNotInitError">The scan couldn\'t start. Did you enable both Bluetooth and Location services ?</string>
+    <string name="locationNullError">Ops ! We couldn\'t retrieve your location. Make sure the location service is enabled!</string>
+    <string name="locationPemrmissionError">Sorry, we cannot offer our services if you don\'t do any concession !</string>
 
+    <string name="warningTitlePopup">Good lord!</string>
+    <string name="warningNotImplemented">Did you think that was the only project we have ? This feature will be implemented soon!</string>
 
+    <string name="okBtn">OK</string>
 </resources>
