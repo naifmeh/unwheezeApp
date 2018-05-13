@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -19,6 +20,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.unwheeze.unwheezeapp.R;
+import com.unwheeze.unwheezeapp.activities.SplashActivity;
 import com.unwheeze.unwheezeapp.beans.AirData;
 import com.unwheeze.unwheezeapp.database.AirDataContract;
 import com.unwheeze.unwheezeapp.database.AirDataDbHelper;
@@ -36,15 +38,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by User on 14/03/2018.
+ *
  */
 //TODO: HUGE PROBLEM CANT GET THE LOADER TO LOAD THE DATA WHYYYY
 public class AirDataLoader extends AsyncTaskLoader<String> {
 
     private static final String TAG = AirDataLoader.class.getSimpleName();
 
-    private AirDataDbHelper mDbHelper = new AirDataDbHelper(getContext());
-    private SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    private AirDataDbHelper mDbHelper;
+    private SQLiteDatabase db;
     private SharedPreferences mSharedPrefs;
 
     private RequestQueue queue;
@@ -55,6 +57,9 @@ public class AirDataLoader extends AsyncTaskLoader<String> {
     public AirDataLoader(Context context) {
         super(context);
         mCtx = context;
+        mDbHelper = new AirDataDbHelper(mCtx);
+        db = mDbHelper.getWritableDatabase();
+
         queue = AirDataRequestSingleton.getInstance(context.getApplicationContext())
             .getRequestQueue();
 
@@ -86,7 +91,12 @@ public class AirDataLoader extends AsyncTaskLoader<String> {
 
         final Gson gson = new Gson();
 
-
+         /*Emptying SQL table*/
+        try {
+            mDbHelper.onUpgrade(db,1,2);
+        } catch(SQLiteException e) {
+            e.printStackTrace();
+        }
 
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, mUri.toString(), null, (response) -> {
 
@@ -100,7 +110,7 @@ public class AirDataLoader extends AsyncTaskLoader<String> {
                         Log.d(TAG,"Insertion row : "+resp);
                 }
                 db.close();
-        }, (error) -> Log.d(TAG,"onErrorResponse "+error.getMessage())) {
+        }, (error) -> Toast.makeText(mCtx,mCtx.getString(R.string.errorNetwork), Toast.LENGTH_LONG).show()) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String,String> params = new HashMap<String,String>();

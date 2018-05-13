@@ -23,6 +23,8 @@
     <string name="connectToDeviceFab">Connect to device</string>
     <string name="connectedBteFabLabel">Connected to </string>
     <string name="scanningBte">Scanning...</string>
+    <string name="scheduledScan">Measure every 30 seconds</string>
+    <string name="periodicallyScanning">Measure periodically (30s)...</string>
 
     <string name="pm10TitleLabel">PM10</string>
     <string name="pm25TitleLabel">PM2.5</string>
@@ -49,9 +51,11 @@
     <string name="btNotInitError">The scan couldn\'t start. Did you enable both Bluetooth and Location services ?</string>
     <string name="locationNullError">Ops ! We couldn\'t retrieve your location. Make sure the location service is enabled!</string>
     <string name="locationPemrmissionError">Sorry, we cannot offer our services if you don\'t do any concession !</string>
+    <string name="problemRetrievingError">There was a problem retrieving the data. Check your internet connection. Our database is maybe empty at the moment!</string>
 
     <string name="warningTitlePopup">Good lord!</string>
     <string name="warningNotImplemented">Did you think that was the only project we have ? This feature will be implemented soon!</string>
 
+    <string name="errorNetwork">There was a network error while loading.</string>
     <string name="okBtn">OK</string>
 </resources>

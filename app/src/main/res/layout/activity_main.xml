@@ -127,7 +127,11 @@
         fab:menu_labels_textColor="@android:color/black"
         fab:menu_labels_cornerRadius="3dp"
         fab:menu_labels_ellipsize="none">
-        
+        <com.github.clans.fab.FloatingActionButton
+            style="@style/SubFabIcons"
+            android:id="@+id/fab_menu_periodicMeasure"
+            fab:fab_label="@string/scheduledScan"
+            android:src="@drawable/ic_access_time_white_24px"/>
         <com.github.clans.fab.FloatingActionButton
             style="@style/SubFabIcons"
             android:id="@+id/fab_menu_measure"
@@ -138,5 +142,6 @@
             android:id="@+id/fab_menu_btConnect"
             fab:fab_label="@string/connectToDeviceFab"
             android:src="@drawable/ic_bluetooth_white_24px"/>
+
     </com.github.clans.fab.FloatingActionMenu>
 </android.support.design.widget.CoordinatorLayout>

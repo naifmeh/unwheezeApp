@@ -241,13 +241,7 @@ public class SplashActivity extends AppCompatActivity {
             }
 
 
-           /*Emptying SQL table*/
-            AirDataDbHelper helper = new AirDataDbHelper(SplashActivity.this);
-            try(SQLiteDatabase db = helper.getWritableDatabase()) {
-                helper.onUpgrade(db,1,2);
-            } catch(SQLiteException e) {
-                e.printStackTrace();
-            }
+
 
             Log.d(TAG,"Done asynctask");
             queue.add(apiKeyRequest);

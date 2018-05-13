@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -66,7 +67,7 @@ public class NetworkUtils {
             jsonArray.addAll(gson.fromJson(response.toString(), JsonArray.class));
             listener.onResponseResult(jsonArray);
         },(error) -> {
-            //TODO: Handle error
+            Toast.makeText(mCtx,mCtx.getString(R.string.errorNetwork),Toast.LENGTH_LONG).show();
         }){
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
@@ -89,9 +90,7 @@ public class NetworkUtils {
             jsonArray.addAll(gson.fromJson(response.toString(), JsonArray.class));
             listener.onResponseResult(jsonArray);
             Log.d(TAG,jsonArray.toString());
-        },(error) -> {
-            //TODO: Handle error
-        }){
+        },(error) -> Toast.makeText(mCtx,mCtx.getString(R.string.errorNetwork),Toast.LENGTH_LONG).show()){
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String,String> map = new HashMap<>();

@@ -212,7 +212,7 @@ public class AirDataUtils {
 
     public static void animateProgressBar(ProgressBar progressBar, int value) {
         ObjectAnimator animation = ObjectAnimator.ofInt (progressBar, "progress", 0,value); // see this max value coming back here, we animate towards that value
-        animation.setDuration (1000); //in milliseconds
+        animation.setDuration (200); //in milliseconds
         animation.setInterpolator (new DecelerateInterpolator());
         animation.start ();
     }

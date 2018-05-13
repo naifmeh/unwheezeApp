@@ -108,6 +108,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 //TODO: Avant d'enregistrer toute donnee dans la db, verifier qu'elle n'y est pas deja
 
 public class MainActivity extends AppCompatActivity
@@ -119,6 +122,10 @@ public class MainActivity extends AppCompatActivity
     private Toolbar mToolbar;
     private FloatingActionButton mConnectFab;
     private FloatingActionButton mMeasureFabButton;
+    private FloatingActionButton mPeriodicMeasureFab;
+
+    private boolean isPeriodicallyScanning = false;
+    private ScheduledExecutorService mReadScheduler;
 
     private ErrorDialog mErrorDialog;
     private WarningDialog mWarningDialog;
@@ -134,6 +141,7 @@ public class MainActivity extends AppCompatActivity
     private List<WeightedLatLng> mHeatMapList = new ArrayList<>();
     private HeatmapTileProvider mProvider;
     private TileOverlay mOverlay;
+    private List<Marker> mMarkerList = new ArrayList<>();
 
     private boolean isBtPresent = true;
     private BluetoothAdapter mBluetoothAdapter;
@@ -150,7 +158,7 @@ public class MainActivity extends AppCompatActivity
     private float mPm1 = 0.f;
     private float mPm25 = 0.f;
     private float mPm10 = 0.f;
-    private char mMeasureTrigger = 'B';
+    private char MEASURE_TRIGGER = 'B';
     private int mOverallAirOpinion = AirDataUtils.AIR_QUALITY_NEUTRAL;
 
     private Handler mHandler; //TODO: Handle service here
@@ -168,6 +176,8 @@ public class MainActivity extends AppCompatActivity
     public static final int LOADER_AIRDATA_TAG =  654548;
     private static final int REQUEST_ENABLE_BT = 62328;
     private static final int REQUEST_ENABLE_LOCATION = 58976;
+
+    public static final int PERIOD_SCHEDULED_SCAN = 30;
 
 
     @Override
@@ -198,7 +208,10 @@ public class MainActivity extends AppCompatActivity
 
         mConnectFab = (FloatingActionButton) findViewById(R.id.fab_menu_btConnect);
         mMeasureFabButton = (FloatingActionButton) findViewById(R.id.fab_menu_measure);
+        mPeriodicMeasureFab = (FloatingActionButton) findViewById(R.id.fab_menu_periodicMeasure);
 
+        //----- Starting Loader
+        getSupportLoaderManager().restartLoader(LOADER_AIRDATA_TAG,null,this).forceLoad();
 
         //--- LOADING MAP
         SupportMapFragment mapFragment = (SupportMapFragment)getSupportFragmentManager()
@@ -217,8 +230,6 @@ public class MainActivity extends AppCompatActivity
         //---------- Bottom Sheet
         bottomSheetDialogFragment = MeasureDialogFragment.newInstance();
 
-        //----- Starting Loader
-        getSupportLoaderManager().initLoader(LOADER_AIRDATA_TAG,null,this).forceLoad();
 
         //Starting location manager
         GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -244,8 +255,19 @@ public class MainActivity extends AppCompatActivity
 
         });
 
-        mMeasureFabButton.setOnClickListener((view)-> {
-            writeCharacteristic('B');
+        mMeasureFabButton.setOnClickListener((view)->writeCharacteristic('B'));
+
+        mPeriodicMeasureFab.setOnClickListener((view)->{
+            if(!isPeriodicallyScanning) {
+                readPeriodically();
+                readPeriodically();
+
+            } else {
+                stopPeriodicReading();
+                stopPeriodicReading();
+
+            }
+
         });
 
         //--------- Service start
@@ -291,6 +313,7 @@ public class MainActivity extends AppCompatActivity
         filter.addAction(getString(R.string.websocketDataReceivedIntent));
         mLocalBroadcastManager.registerReceiver(mBroadcastReceiver,filter);
         setLocationUpdater();
+
 
     }
 
@@ -411,9 +434,7 @@ public class MainActivity extends AppCompatActivity
         mScanning = true;
         mConnectFab.setLabelText(getResources().getString(R.string.scanningBte));
         mHandler = new Handler();
-        mHandler.postDelayed(()->{
-            stopScan();
-        },SCAN_PERIOD);
+        mHandler.postDelayed(()-> stopScan(),SCAN_PERIOD);
 
     }
 
@@ -423,7 +444,7 @@ public class MainActivity extends AppCompatActivity
             Log.d(TAG,"Scan over");
             mBluetoothLeScanner.stopScan(mScanCallback);
             if(mBtDevices.isEmpty()) {
-                showErrorDialog(getString(R.string.scanFailedError));
+                //showErrorDialog(getString(R.string.scanFailedError));
             }
 
 
@@ -451,6 +472,7 @@ public class MainActivity extends AppCompatActivity
             mConnectFab.setLabelText(getResources().getString(R.string.connectToDeviceFab));
             mConnectFab.setClickable(true);
             mConnectFab.setColorNormal(getResources().getColor(R.color.colorPrimaryDark));
+            showErrorDialog(getString(R.string.scanFailedError));
         }
     }
 
@@ -475,6 +497,33 @@ public class MainActivity extends AppCompatActivity
             //TODO: Handle UI ?
         } else Log.e(TAG,"Error while sending data");
 
+    }
+
+    private void readPeriodically() {
+        if(mBluetoothAdapter == null || mBtGatt == null) {
+            showErrorDialog(getString(R.string.btNotInitError));
+            return;
+        }
+        mPeriodicMeasureFab.setLabelText(getString(R.string.periodicallyScanning));
+        mPeriodicMeasureFab.setColorNormal(ContextCompat.getColor(MainActivity.this,R.color.colorPrimary));
+        isPeriodicallyScanning = true;
+        mReadScheduler = Executors.newScheduledThreadPool(1);
+        final Runnable periodicBt = ()->{
+            if(bottomSheetDialogFragment != null || isBottomSheetDisplayed)
+                bottomSheetDialogFragment.dismiss();
+            runOnUiThread(()->writeCharacteristic(MEASURE_TRIGGER));
+        };
+
+        mReadScheduler.scheduleAtFixedRate(periodicBt,0,PERIOD_SCHEDULED_SCAN, TimeUnit.SECONDS);
+
+    }
+
+    private void stopPeriodicReading() {
+        if(mReadScheduler != null)
+            mReadScheduler.shutdown();
+        mPeriodicMeasureFab.setLabelText(getString(R.string.scheduledScan));
+        mPeriodicMeasureFab.setColorNormal(ContextCompat.getColor(MainActivity.this,R.color.colorPrimaryDark));
+        isPeriodicallyScanning = false;
     }
 
     private void subscribeCharacteristic(boolean enable) {
@@ -539,19 +588,6 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings({"ResourceType"})
     public void onMapReady(GoogleMap googleMap) {
         mainMap = googleMap;
-       /* mHeatMapList = readItems(); //TODO: Do this only when loader has finished
-
-        if(!mHeatMapList.isEmpty()) {
-            mProvider = new HeatmapTileProvider.Builder()
-                    .weightedData(mHeatMapList)
-                    .build();
-
-             mOverlay = mainMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
-        } else {
-            Toast.makeText(this,"Couldn't load data ",Toast.LENGTH_LONG)
-                    .show();
-        }*/
-
         mainMap.setMyLocationEnabled(true);
 
         if(mSharedPrefs != null && mSharedPrefs.contains(getString(R.string.shared_prefs_file_current_coarse_latitude))) {
@@ -612,9 +648,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void loadMapData() {
+        if(mainMap != null) removeMarkers();
         mHeatMapList = readItems();
         if(!hasLoaderFinishedOnce && mainMap != null) {
-            if(!mHeatMapList.isEmpty()) {
+            if(mHeatMapList.size()>0) {
                 mProvider = new HeatmapTileProvider.Builder()
                         .weightedData(mHeatMapList)
                         .build();
@@ -622,8 +659,7 @@ public class MainActivity extends AppCompatActivity
                 mOverlay = mainMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
                 hasLoaderFinishedOnce = true;
             } else {
-                Toast.makeText(this,"Couldn't load data ",Toast.LENGTH_LONG)
-                        .show();
+                showErrorDialog(getString(R.string.problemRetrievingError));
             }
         }
         else {
@@ -635,7 +671,7 @@ public class MainActivity extends AppCompatActivity
    private ArrayList<WeightedLatLng> readItems() { //PROBLEME ICI
         //TODO filter by city
        AirDataDbHelper mDbHelper = new AirDataDbHelper(this);
-       SQLiteDatabase db = mDbHelper.getWritableDatabase();
+       SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
        ArrayList<WeightedLatLng> list = new ArrayList<WeightedLatLng>();
 
@@ -649,13 +685,26 @@ public class MainActivity extends AppCompatActivity
            LatLng latlng = new LatLng(Float.parseFloat(position[0]),Float.parseFloat(position[1]));
            list.add(new WeightedLatLng(latlng,airData.getPm25()));
            /* Setting markers */
-
-           Marker marker = mainMap.addMarker(customizeMarker(airData));
-           marker.setTag(airData.getId());
+           addMarker(airData);
 
        }
 
        return list;
+   }
+
+   private void addMarker(AirData airData) {
+        /* Setting markers */
+       if(mainMap == null) return;
+       Marker marker = mainMap.addMarker(customizeMarker(airData));
+       mMarkerList.add(marker);
+       marker.setTag(airData.getId());
+   }
+
+   private void removeMarkers() {
+        for(Marker marker : mMarkerList) {
+            marker.remove();
+        }
+        mMarkerList.clear();
    }
 
 
@@ -669,7 +718,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
-        loadMapData();
+        if(mHandler == null) mHandler = new Handler();
+        mHandler.postDelayed(()->loadMapData(),500);
     }
 
     @Override
@@ -709,7 +759,8 @@ public class MainActivity extends AppCompatActivity
                 if(isBottomSheetDisplayed != true)
                     bottomSheetDialogFragment.show(getSupportFragmentManager(),bottomSheetDialogFragment.getTag());
                 else {
-                    //TODO: Handle case
+                    bottomSheetDialogFragment.dismiss();
+                    bottomSheetDialogFragment.show(getSupportFragmentManager(),bottomSheetDialogFragment.getTag());
                 }
 
             }
@@ -801,6 +852,7 @@ public class MainActivity extends AppCompatActivity
           });
         } else if(action == MyBluetoothGattCallback.ACTION_BTE_DISCONNECTED){
             if(mBtGatt != null) mBtGatt.close();
+            if(isPeriodicallyScanning) stopPeriodicReading();
             mConnectionState = BluetoothProfile.STATE_DISCONNECTED;
             runOnUiThread(() -> {
                 mConnectFab.setLabelText(getResources().getString(R.string.connectToDeviceFab));
@@ -827,12 +879,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onStop() {
+        Log.d(TAG,"onStop");
         mHandler = null;
         super.onStop();
     }
 
     @Override
     protected void onDestroy() {
+        if(isPeriodicallyScanning) stopPeriodicReading();
         if(mBtGatt != null) mBtGatt.close();
         Intent stopService = new Intent(this,WebsocketService.class);
         mLocalBroadcastManager.unregisterReceiver(mBroadcastReceiver);
@@ -863,7 +917,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void requestNewMeasure(MeasureDialogFragment fragment) {
         fragment.dismiss();
-        writeCharacteristic(mMeasureTrigger);
+        writeCharacteristic(MEASURE_TRIGGER);
     }
 
     @Override
@@ -885,6 +939,7 @@ public class MainActivity extends AppCompatActivity
             if(intent.hasExtra(WebsocketService.AIR_DATA_WSINTENT_KEY)) {
                 String airDataJson = intent.getStringExtra(WebsocketService.AIR_DATA_WSINTENT_KEY);
                 AirData airData = new Gson().fromJson(airDataJson, AirData.class);
+                if(airData.getId()==null) return; //TODO: Handle deletion server side
                 Log.d(TAG, airDataJson);
                 String[] location = {"", ""};
                 if (airData != null) location = airData.getLocation().split(",");
@@ -894,8 +949,7 @@ public class MainActivity extends AppCompatActivity
                 if (location.length > 1) {
                     LatLng latlng = new LatLng(Double.parseDouble(location[0]), Double.parseDouble(location[1]));
                     mHeatMapList.add(new WeightedLatLng(latlng, AirDataUtils.computeAQI(airData)));
-                    Marker marker = mainMap.addMarker(customizeMarker(airData));
-                    marker.setTag(airData.getId());
+                    addMarker(airData);
                 }
 
                 mProvider.setWeightedData(mHeatMapList);
