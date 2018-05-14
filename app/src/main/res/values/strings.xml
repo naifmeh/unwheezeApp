@@ -24,7 +24,7 @@
     <string name="connectedBteFabLabel">Connected to </string>
     <string name="scanningBte">Scanning...</string>
     <string name="scheduledScan">Measure every 30 seconds</string>
-    <string name="periodicallyScanning">Measure periodically (30s)...</string>
+    <string name="periodicallyScanning">Measuring periodically (30s)...</string>
 
     <string name="pm10TitleLabel">PM10</string>
     <string name="pm25TitleLabel">PM2.5</string>

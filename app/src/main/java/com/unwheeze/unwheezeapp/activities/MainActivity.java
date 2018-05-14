@@ -103,6 +103,7 @@ import com.unwheeze.unwheezeapp.utils.AirDataUtils;
 
 import org.json.JSONObject;
 
+import java.security.Provider;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -663,12 +664,15 @@ public class MainActivity extends AppCompatActivity
             }
         }
         else {
-            mProvider.setWeightedData(mHeatMapList);
-            mOverlay.clearTileCache();
+            if(mHeatMapList.size() > 0){
+                mProvider.setWeightedData(mHeatMapList);
+                mOverlay.clearTileCache();
+            }
+
         }
     }
 
-   private ArrayList<WeightedLatLng> readItems() { //PROBLEME ICI
+   private ArrayList<WeightedLatLng> readItems() {
         //TODO filter by city
        AirDataDbHelper mDbHelper = new AirDataDbHelper(this);
        SQLiteDatabase db = mDbHelper.getReadableDatabase();
@@ -719,7 +723,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
         if(mHandler == null) mHandler = new Handler();
-        mHandler.postDelayed(()->loadMapData(),500);
+        mHandler.postDelayed(()->loadMapData(),750);
     }
 
     @Override

@@ -56,9 +56,9 @@ public class AirDataUtils {
 
     public static int computeAQI(@NonNull AirData airData) {
         int aqi = (int)airData.getPm1();
-        if(aqi<350)
+        if(aqi<40)
             return AIR_QUALITY_GOOD;
-        else if(aqi>350 && aqi <700)
+        else if(aqi>40 && aqi <70)   
             return AIR_QUALITY_NEUTRAL;
         else
             return AIR_QUALITY_BAD;
