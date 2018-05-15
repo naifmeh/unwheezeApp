@@ -748,9 +748,9 @@ public class MainActivity extends AppCompatActivity
                 String[] finalValue = (new String(data)).split("-");
                 Log.d(TAG,"receivedCharacteristics Value : "+new String(data));
                 if(finalValue.length >= 3) {
-                    mPm1 = Float.parseFloat(finalValue[0]);
+                    mPm10 = Float.parseFloat(finalValue[0]);
                     mPm25 = Float.parseFloat(finalValue[1]);
-                    mPm10 = Float.parseFloat(finalValue[2]);
+                    mPm1 = Float.parseFloat(finalValue[2]);
                 }
                 if(mPm1 == 0 && mPm10 == 0 && mPm25 == 0) return;
 
